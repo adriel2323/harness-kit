@@ -1,0 +1,15 @@
+# Perfil: Node.js / TypeScript. Copiado a harness.config.sh por el instalador.
+HARNESS_LANGUAGE="node"
+HARNESS_SRC_DIR="src"
+HARNESS_TESTS_DIR="test"
+HARNESS_TEST_CMD="npm test --silent"
+HARNESS_TEST_VERBOSE_CMD="npm test"
+HARNESS_MUTATION_CMD="npx stryker run"
+HARNESS_MUTATION_THRESHOLD="100"
+HARNESS_BUILD_CMD="npm run build --if-present"
+HARNESS_LINT_CMD="npm run lint --if-present"
+HARNESS_RUNTIME_CHECK="node --version"
+# Alternativas comunes (descomenta/edita):
+#   pnpm:   HARNESS_TEST_CMD="pnpm test"
+#   yarn:   HARNESS_TEST_CMD="yarn test"
+#   vitest: HARNESS_TEST_CMD="npx vitest run"

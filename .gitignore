@@ -1,0 +1,26 @@
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+.pytest_cache/
+.mutmut-cache
+
+# Node / JS / TS
+node_modules/
+dist/
+.stryker-tmp/
+*.tsbuildinfo
+
+# Go
+bin/
+
+# Rust
+target/
+
+# Genéricos
+*.tmp
+.DS_Store
+
+# Datos de ejemplo (ajusta a tu app)
+.notes.json
+.notes_*.json

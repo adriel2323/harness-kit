@@ -1,0 +1,32 @@
+{
+  "project": "TODO: nombre del proyecto",
+  "description": "TODO: una frase sobre qué hace el proyecto.",
+  "rules": {
+    "one_feature_at_a_time": true,
+    "require_tests_to_close": true,
+    "require_approved_spec_to_implement": true,
+    "valid_status": [
+      "pending",
+      "spec_ready",
+      "in_progress",
+      "done",
+      "blocked"
+    ],
+    "sdd_required_when": "feature has \"sdd\": true"
+  },
+  "features": [
+    {
+      "id": 1,
+      "name": "feature_ejemplo",
+      "title": "Feature de ejemplo (reemplázame)",
+      "description": "Plantilla de feature. Borra esta y añade las tuyas. Toda feature con \"sdd\": true recorre el pipeline completo: spec_partner → gherkin_author → (puerta humana) → tdd_craftsman → judge → mutation_tester.",
+      "acceptance": [
+        "Criterio de aceptación 1: observable y verificable.",
+        "Criterio de aceptación 2: incluye al menos un caso límite/error.",
+        "Los tests cubren el camino feliz y los casos de error."
+      ],
+      "sdd": true,
+      "status": "pending"
+    }
+  ]
+}
