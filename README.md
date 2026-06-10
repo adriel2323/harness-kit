@@ -73,7 +73,10 @@ El instalador:
 1. Copia el arnés a la raíz del proyecto (sin pisar archivos existentes salvo
    que pases `--force`).
 2. Detecta el lenguaje y escribe `harness.config.sh` desde el perfil adecuado.
-3. Te deja `init.sh` ejecutable y te dice el siguiente paso.
+3. **Lo deja local-only**: añade un bloque gestionado al `.gitignore` del
+   proyecto para que su repo no versione el arnés (es parte de tu ecosistema
+   de desarrollo, no del proyecto). Usa `--share-harness` para versionarlo.
+4. Te deja `init.sh` ejecutable y te dice el siguiente paso.
 
 Luego, en la raíz del proyecto:
 
@@ -96,12 +99,13 @@ craftsman-harness-kit/
 ├── install.sh                 # instalador: copia + detecta lenguaje + config
 ├── harness.config.sh          # ⚙️  config central (comandos por lenguaje)
 ├── init.sh                    # verificación: lee la config, no asume lenguaje
+├── .gitignore                 # solo para el repo DEL KIT (no se instala);
+│                              #   en el proyecto, install.sh gestiona el suyo
 ├── CLAUDE.md                  # fuerza el rol craftsman_lead (agnóstico)
 ├── AGENTS.md                  # mapa de navegación para agentes
 ├── CHECKPOINTS.md             # criterios objetivos de "estado final correcto"
 ├── feature_list.json          # alcance: una feature a la vez (plantilla)
 ├── project-spec.md            # spec conversada (plantilla)
-├── .gitignore                 # ignora artefactos comunes de varios lenguajes
 ├── .claude/
 │   ├── settings.json          # hooks de verificación (agnósticos vía wrappers)
 │   └── agents/                # craftsman_lead, spec_partner, gherkin_author,

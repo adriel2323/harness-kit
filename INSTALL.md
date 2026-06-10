@@ -9,8 +9,9 @@ review → mutación) es universal; lo único que cambia entre proyectos son los
 Desde la carpeta del kit:
 
 ```bash
-./install.sh /ruta/a/tu/proyecto          # proyecto nuevo o existente
-./install.sh /ruta/a/tu/proyecto --force  # sobreescribe archivos del arnés ya presentes
+./install.sh /ruta/a/tu/proyecto                  # proyecto nuevo o existente
+./install.sh /ruta/a/tu/proyecto --force          # sobreescribe archivos del arnés ya presentes
+./install.sh /ruta/a/tu/proyecto --share-harness  # versiona el arnés en el repo (ver §1.1)
 ```
 
 El instalador copia los archivos del arnés a la raíz del proyecto y **nunca
@@ -19,6 +20,37 @@ toca tu `src/`/código**. Para proyectos en producción es seguro: sin
 
 > El arnés **debe** vivir en la raíz del proyecto: Claude Code lee `CLAUDE.md`
 > y `.claude/agents/` desde ahí. No lo dejes en una subcarpeta.
+
+## 1.1 El arnés es local-only por defecto
+
+Por defecto, **el arnés no se versiona en el repo del proyecto**: es parte del
+ecosistema de desarrollo local de quien lo usa. Tras copiar los archivos, el
+instalador añade un **bloque gestionado** al `.gitignore` del proyecto con
+todas las rutas que instala y genera:
+
+```gitignore
+# >>> craftsman-harness (local-only, gestionado por install.sh) >>>
+/CLAUDE.md
+/AGENTS.md
+/harness.config.sh
+/docs/workflow.md
+... (todo el arnés)
+/progress/
+/features/
+# <<< craftsman-harness <<<
+```
+
+- **No pisa tu `.gitignore`**: respeta su contenido y solo añade/reescribe su
+  propio bloque (idempotente — reinstalar no duplica).
+- Incluye también los **artefactos de trabajo** generados por el flujo
+  (`project-spec.md`, `feature_list.json`, `features/*.feature`,
+  `progress/*`), porque «todo lo que se genere» queda local.
+- Comprueba el resultado con `git status`: el arnés no debe aparecer.
+
+¿Tu equipo quiere **compartir** el arnés (versionarlo con el proyecto)? Instala
+con `--share-harness` y el instalador omite el bloqueo en `.gitignore`. Si ya
+lo instalaste local-only, basta con borrar el bloque entre los marcadores
+`craftsman-harness` de tu `.gitignore`.
 
 ## 2. Detección de lenguaje
 
