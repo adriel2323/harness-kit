@@ -59,7 +59,7 @@ info "Instalando arnés en: $TARGET"
 # README.md, INSTALL.md, profiles/, .gitignore ni harness.config.sh (este
 # último se genera; el .gitignore del proyecto no se pisa, se gestiona — §3).
 HARNESS_PATHS=(
-  "CLAUDE.md" "AGENTS.md" "CHECKPOINTS.md" "feature_list.json"
+  "CLAUDE.md" "AGENTS.md" "CHECKPOINTS.md" "QUICKSTART.md" "feature_list.json"
   "project-spec.md" "init.sh"
   ".claude/settings.json"
   ".claude/agents/craftsman_lead.md" ".claude/agents/spec_partner.md"
