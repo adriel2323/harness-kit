@@ -55,7 +55,7 @@ HARNESS_LINT_CMD=""                                    # lint/format check (opci
 HARNESS_RUNTIME_CHECK="python3 --version"              # comando que prueba el toolchain
 ```
 
-Cambiar de `unittest` a `pytest`, de `npm test` a `pnpm test`, etc., es
+Cambiar de `unittest` a `pytest`, de `pnpm test` a `npm test`, etc., es
 **editar una línea aquí**. Nada más en el arnés hardcodea comandos.
 
 ## 4. Bootstrap (recomendado, dentro de Claude Code)
@@ -87,7 +87,7 @@ herramienta nativa madura:
 | Lenguaje | Herramienta de mutación recomendada    |
 |----------|-----------------------------------------|
 | Python   | `tools/mutate.py` (incluido) · `mutmut` · `cosmic-ray` |
-| JS/TS    | `Stryker` (`npx stryker run`)           |
+| JS/TS    | `Stryker` (`pnpm dlx stryker run`)      |
 | Go       | `go-mutesting` · `gremlins`             |
 | Rust     | `cargo-mutants`                         |
 | Java/Kt  | `PIT` (`pitest`)                        |

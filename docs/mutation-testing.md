@@ -29,7 +29,7 @@ natural es usar la herramienta madura de tu ecosistema:
 | Lenguaje | Herramienta de mutación                                  |
 |----------|-----------------------------------------------------------|
 | Python   | `tools/mutate.py` (incluido, sin deps) · `mutmut` · `cosmic-ray` |
-| JS/TS    | `Stryker` (`npx stryker run`)                             |
+| JS/TS    | `Stryker` (`pnpm dlx stryker run`)                        |
 | Go       | `go-mutesting` · `gremlins`                               |
 | Rust     | `cargo-mutants`                                           |
 | Java/Kt  | `PIT` (`pitest`)                                          |
