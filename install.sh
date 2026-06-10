@@ -68,7 +68,7 @@ HARNESS_PATHS=(
   ".claude/agents/harness_bootstrap.md"
   "docs/workflow.md" "docs/tdd.md" "docs/gherkin.md"
   "docs/mutation-testing.md" "docs/architecture.md" "docs/conventions.md"
-  "docs/verification.md"
+  "docs/verification.md" "docs/refactoring.md"
   "tools/run-tests.sh" "tools/mutate.py"
   "progress/current.md" "progress/history.md"
 )

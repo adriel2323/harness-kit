@@ -36,6 +36,7 @@
 | `docs/tdd.md`                | Las Tres Leyes del TDD; el ciclo Rojo-Verde-Refactor                        | Antes de escribir código |
 | `docs/gherkin.md`            | Cómo escribir `.feature`; de Gherkin a test                                 | Antes de redactar/leer escenarios |
 | `docs/mutation-testing.md`   | Por qué y cómo; umbral; tabla de herramientas por lenguaje                  | Antes de validar la suite |
+| `docs/refactoring.md`        | Cómo llevar un refactor/SOLID/desacople por el flujo (caracterización)      | Antes de tocar una feature `[REFACTOR]` |
 | `docs/architecture.md`       | Qué significa "hacer un buen trabajo" en este proyecto                      | Antes de implementar |
 | `docs/conventions.md`        | Reglas de estilo, nombres, estructura                                       | Antes de escribir código |
 | `docs/verification.md`       | Cómo verificar que tu trabajo funciona                                      | Antes de declarar `done` |

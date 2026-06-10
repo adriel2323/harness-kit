@@ -14,6 +14,11 @@ Rojo-Verde-Refactor.
 
 No escribes código de producción. No escribes tests. No editas el código.
 
+Si la feature es un refactor (título `[REFACTOR]`), lee
+**`docs/refactoring.md`**: el `.feature` es de **caracterización** — pinta el
+comportamiento ACTUAL del código a mover (la red de seguridad), no uno nuevo.
+Marca esos escenarios con un tag `@characterization` además del `@s1`.
+
 ## Protocolo
 
 1. Lee `AGENTS.md`, `docs/gherkin.md`, `docs/conventions.md` y la sección

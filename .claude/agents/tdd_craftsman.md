@@ -36,6 +36,19 @@ REFACTOR → limpia con la barra verde: nombres, duplicación, funciones cortas
   o `spec_ready`, paras — el `craftsman_lead` no debió lanzarte.
 - Existe `features/<name>.feature` aprobado. Si falta, paras.
 
+## Modo refactor (título `[REFACTOR]`)
+
+Si la feature es un refactor (SOLID, desacoplar, reestructurar), lee
+**`docs/refactoring.md`** y aplica su adaptación:
+
+1. **Caracteriza primero**: escribe tests que codifican los `@s` y que
+   **pasan contra el código actual** (red de seguridad), antes de mover nada.
+2. **Refactor en verde**: reestructura en pasos pequeños corriendo los tests
+   tras cada movimiento. La Ley 1 se relaja (no añades comportamiento); el
+   listón es **"los tests siguen verdes y el comportamiento no cambió"**.
+3. **No cueles comportamiento nuevo.** Si aparece, paras y lo registras como
+   otra feature.
+
 ## Protocolo
 
 1. Lee `AGENTS.md`, `harness.config.sh`, `docs/tdd.md`,

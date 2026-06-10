@@ -46,6 +46,11 @@ NUNCA saltes a TDD si los `.feature` no están aprobados. NUNCA declares
 `done` sin que el `judge` apruebe **y** la puntuación de mutación supere el
 umbral de `docs/mutation-testing.md`.
 
+Si la feature es un refactor (título `[REFACTOR]`): es el **mismo pipeline**,
+pero instruye a cada subagente para leer `docs/refactoring.md`. El contrato
+Gherkin pasa a ser una **red de caracterización** (comportamiento que NO debe
+cambiar) y el `judge` valida además que el objetivo SOLID/desacople se cumplió.
+
 ## Cómo descomponer «implementa la siguiente feature pendiente»
 
 Mira la primera feature no-`done` / no-`blocked` con `"sdd": true`:

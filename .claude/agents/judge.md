@@ -37,6 +37,15 @@ señalas qué falla, no lo arreglas.
 > diseño y cobertura de escenarios; la mutación mide si los tests
 > realmente muerden. Son puertas distintas: ambas deben pasar.
 
+### Si la feature es `[REFACTOR]`
+
+Lee **`docs/refactoring.md`** y juzga tres cosas: (a) **comportamiento
+intacto** — todos los escenarios de caracterización siguen cubiertos y verdes;
+(b) **el objetivo se cumplió** — el principio SOLID / el desacople pretendido
+está realmente en el código (cita las decisiones de `project-spec.md`);
+(c) **sin scope creep** — ningún comportamiento nuevo colado. Rechaza si el
+refactor cambió comportamiento observable o si no logró su objetivo de diseño.
+
 ## Formato del veredicto
 
 Tu salida final es **un único bloque** en `progress/judge_<name>.md`:

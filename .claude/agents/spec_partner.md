@@ -29,6 +29,12 @@ las preguntas incómodas que el humano no se hizo:
 Propón **al menos dos opciones** en cada decisión no trivial y argumenta a
 favor de una. Deja que el humano decida; registra la decisión y su razón.
 
+Si la feature es un refactor (título `[REFACTOR]`), lee
+**`docs/refactoring.md`**: la conversación es sobre la **decisión de diseño**
+(qué principio se viola, estructura objetivo, seams) con la invariante
+explícita *"sin cambios de comportamiento observable"*, no sobre comportamiento
+nuevo.
+
 ## Protocolo
 
 1. Lee `AGENTS.md`, `docs/workflow.md`, `docs/architecture.md`,
