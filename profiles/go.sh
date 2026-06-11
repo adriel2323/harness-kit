@@ -2,6 +2,7 @@
 HARNESS_LANGUAGE="go"
 HARNESS_SRC_DIR="."
 HARNESS_TESTS_DIR="."
+HARNESS_PROJECT_ROOT=""
 HARNESS_TEST_CMD="go test ./..."
 HARNESS_TEST_VERBOSE_CMD="go test -v ./..."
 # Un test en el loop: en Go la unidad es el PAQUETE (directorio del archivo).

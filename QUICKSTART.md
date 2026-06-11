@@ -16,7 +16,9 @@ git status        # working tree limpio o en una rama de trabajo
 ## 1. Conseguir el kit del arnés
 
 El kit es la carpeta `craftsman-harness-kit/`. **No va dentro** de tu proyecto:
-vive aparte y su `install.sh` copia lo necesario a la raíz de tu repo.
+vive aparte y su `install.sh` instala el arnés **consolidado en una carpeta
+`harness-kit/`** dentro de tu repo, dejando en la raíz solo lo que Claude Code
+exige ahí (`.claude/` y un `CLAUDE.md` puntero).
 
 ```bash
 # Opción A — clonarlo desde tu remoto del arnés:
@@ -35,9 +37,10 @@ cd /ruta/al/craftsman-harness-kit
 ./install.sh /ruta/a/tu/proyecto
 ```
 
-Esto: copia el arnés (sin pisar lo tuyo), detecta el lenguaje y escribe
-`harness.config.sh`, y lo deja **local-only** (añade un bloque a tu
-`.gitignore` para que tu repo no versione el arnés).
+Esto: copia el arnés a `harness-kit/` (sin pisar tu código), pone `.claude/` en
+la raíz, detecta el lenguaje y escribe `harness-kit/harness.config.sh`, y lo
+deja **local-only** (añade un bloque a tu `.gitignore` para que tu repo no
+versione el arnés).
 
 ```bash
 cd /ruta/a/tu/proyecto
@@ -50,12 +53,12 @@ git status        # el arnés NO debe aparecer (es local-only)
 ## 3. Ajustar la config y verificar
 
 ```bash
-cat harness.config.sh     # ¿el comando de tests es el tuyo?
-./init.sh                 # debe terminar verde: [OK] Entorno listo
+cat harness-kit/harness.config.sh   # ¿el comando de tests es el tuyo?
+harness-kit/init.sh                 # debe terminar verde: [OK] Entorno listo
 ```
 
-Si `./init.sh` falla por el toolchain o el comando de tests, corrige la línea
-correspondiente en `harness.config.sh` y vuelve a correrlo.
+Si `init.sh` falla por el toolchain o el comando de tests, corrige la línea
+correspondiente en `harness-kit/harness.config.sh` y vuelve a correrlo.
 
 ## 4. Bootstrap (una vez) en Claude Code
 
@@ -64,13 +67,13 @@ Abre Claude Code en la raíz del proyecto y pide:
 > **«Haz el bootstrap del arnés para este proyecto.»**
 
 El agente `harness_bootstrap` confirma lenguaje/comandos, rellena
-`docs/architecture.md` y `docs/conventions.md` con las reglas **reales** de tu
-repo (describe lo que ya tienes, no inventa) y, si se lo pides, siembra
-`feature_list.json`.
+`harness-kit/docs/architecture.md` y `harness-kit/docs/conventions.md` con las
+reglas **reales** de tu repo (describe lo que ya tienes, no inventa) y, si se lo
+pides, siembra `harness-kit/feature_list.json`.
 
 ## 5. Definir la primera feature
 
-En `feature_list.json`, una entrada `pending` con `"sdd": true`:
+En `harness-kit/feature_list.json`, una entrada `pending` con `"sdd": true`:
 
 ```json
 {
@@ -93,7 +96,7 @@ En Claude Code pide:
 Lo que ocurre (y dónde paras):
 
 1. `spec_partner` **debate** contigo → `project-spec.md`.
-2. `gherkin_author` destila `features/mi_feature.feature` → estado `spec_ready`.
+2. `gherkin_author` destila `harness-kit/features/mi_feature.feature` → `spec_ready`.
 3. **⏸ PUERTA HUMANA** — el flujo se detiene. Lees los escenarios y respondes
    **«aprobado»** (o pides cambios).
 4. Tras tu OK: `tdd_craftsman` (Rojo→Verde→Refactor) → `judge` (review) →
@@ -109,9 +112,9 @@ Lo que ocurre (y dónde paras):
 cd /ruta/al/craftsman-harness-kit
 ./install.sh /ruta/a/tu/proyecto
 
-# 3: verificar
+# 3: verificar (desde la raíz del proyecto)
 cd /ruta/a/tu/proyecto
-./init.sh
+harness-kit/init.sh
 
 # 4-6: en Claude Code
 #   «Haz el bootstrap del arnés para este proyecto.»

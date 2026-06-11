@@ -14,12 +14,26 @@ Desde la carpeta del kit:
 ./install.sh /ruta/a/tu/proyecto --share-harness  # versiona el arnés en el repo (ver §1.1)
 ```
 
-El instalador copia los archivos del arnés a la raíz del proyecto y **nunca
-toca tu `src/`/código**. Para proyectos en producción es seguro: sin
-`--force` no pisa nada que ya exista (te avisa qué saltó).
+El instalador consolida el arnés en una carpeta **`harness-kit/`** dentro de tu
+proyecto y **nunca toca tu `src/`/código**. Para proyectos en producción es
+seguro: sin `--force` no pisa nada que ya exista (te avisa qué saltó).
 
-> El arnés **debe** vivir en la raíz del proyecto: Claude Code lee `CLAUDE.md`
-> y `.claude/agents/` desde ahí. No lo dejes en una subcarpeta.
+> **Layout resultante.** Claude Code descubre `.claude/` y `CLAUDE.md`
+> *caminando hacia arriba* desde donde lo lanzas, no escaneando subcarpetas —
+> por eso esos dos **deben** quedar en la raíz. Todo lo demás del arnés se
+> consolida en `harness-kit/`:
+>
+> ```
+> <proyecto>/
+> ├── .claude/            # settings.json (hooks → harness-kit/*), CLAUDE.md puntero, agents/
+> ├── harness-kit/        # docs/ tools/ progress/ features/ feature_list.json
+> │                       #   project-spec.md harness.config.sh init.sh …
+> ├── src/  tests/        # TU código (intacto)
+> ```
+>
+> Abre Claude Code **desde la raíz del proyecto**. Los scripts del arnés
+> distinguen solos su propia carpeta (`harness-kit/`) de la raíz donde corren
+> los tests, vía `HARNESS_PROJECT_ROOT`.
 
 ## 1.1 El arnés es local-only por defecto
 
@@ -30,13 +44,11 @@ todas las rutas que instala y genera:
 
 ```gitignore
 # >>> craftsman-harness (local-only, gestionado por install.sh) >>>
-/CLAUDE.md
-/AGENTS.md
-/harness.config.sh
-/docs/workflow.md
-... (todo el arnés)
-/progress/
-/features/
+/harness-kit/
+/.claude/settings.json
+/.claude/CLAUDE.md
+/.claude/agents/craftsman_lead.md
+... (los 7 agentes)
 # <<< craftsman-harness <<<
 ```
 
@@ -71,13 +83,14 @@ lo haga (paso 4).
 
 ## 3. La config central: `harness.config.sh`
 
-Es un archivo de shell que el resto del arnés **lee** (no se ejecuta solo;
-`init.sh` lo hace `source`). Variables:
+Vive en `harness-kit/harness.config.sh`. Es un archivo de shell que el resto
+del arnés **lee** (no se ejecuta solo; `init.sh` lo hace `source`). Variables:
 
 ```sh
 HARNESS_LANGUAGE="python"                              # etiqueta del stack
 HARNESS_SRC_DIR="src"                                  # dónde vive el código
 HARNESS_TESTS_DIR="tests"                              # dónde viven los tests
+HARNESS_PROJECT_ROOT=".."                              # raíz del proyecto (rel. a harness-kit/)
 HARNESS_TEST_CMD="python3 -m unittest discover -s tests -q"   # suite, modo silencioso
 HARNESS_TEST_VERBOSE_CMD="python3 -m unittest discover -s tests -v"  # suite, verboso
 HARNESS_MUTATION_CMD="python3 tools/mutate.py"         # mutación (acepta un archivo)
@@ -129,7 +142,7 @@ Los perfiles ya traen el comando habitual. Ver `docs/mutation-testing.md`.
 ## 6. Empezar a trabajar
 
 ```bash
-./init.sh                                  # verde de punta a punta
+harness-kit/init.sh                        # verde de punta a punta (desde la raíz)
 ```
 
 En `feature_list.json`, deja una feature con `"status": "pending"` y
@@ -145,7 +158,8 @@ supera el umbral.
 ## Resolución de problemas
 
 - **`init.sh` dice que falta `harness.config.sh`** → no se copió un perfil.
-  Copia uno a mano: `cp profiles/python.sh harness.config.sh`.
+  Re-corre `install.sh --force`, o copia uno a mano desde el kit:
+  `cp <kit>/profiles/python.sh harness-kit/harness.config.sh`.
 - **`HARNESS_LANGUAGE` está en `TODO`** → estás en el perfil `generic`. Edita
   `harness.config.sh` o corre el bootstrap.
 - **El toolchain no está instalado** → `HARNESS_RUNTIME_CHECK` falla; instala

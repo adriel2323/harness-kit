@@ -120,7 +120,10 @@ craftsman-harness-kit/
 │   ├── conventions.md         # plantilla: estilo/nombres (rellena bootstrap)
 │   └── verification.md        # cómo demostrar que el trabajo funciona
 ├── tools/
-│   ├── run-tests.sh           # wrapper agnóstico: corre el test cmd configurado
+│   ├── harness-env.sh         # resuelve KIT_DIR/PROJECT_ROOT y carga la config
+│   ├── run-tests.sh           # wrapper agnóstico: suite (--one <file> para un test)
+│   ├── test-affected.sh       # hook: corre solo el test del archivo editado
+│   ├── run-mutation.sh        # wrapper: corre la mutación desde la raíz del proyecto
 │   └── mutate.py              # mutador sin dependencias (Python; fallback genérico)
 ├── profiles/
 │   ├── python.sh  node.sh  go.sh  rust.sh  generic.sh

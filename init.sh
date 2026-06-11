@@ -24,6 +24,12 @@ fi
 # shellcheck source=/dev/null
 . ./harness.config.sh
 
+# KIT_DIR = este directorio (config/tools/estado). PROJECT_ROOT = donde corren
+# los tests (puede ser el padre si el arnés vive en harness-kit/). Exportadas
+# para que los comandos que referencian el arnés (p. ej. mutate.py) resuelvan.
+export HARNESS_KIT_DIR="$HERE"
+PROJECT_ROOT_ABS="$(cd "$HERE/${HARNESS_PROJECT_ROOT:-.}" 2>/dev/null && pwd || echo "$HERE")"
+
 if [ "${HARNESS_LANGUAGE:-TODO}" = "TODO" ] || [ -z "${HARNESS_LANGUAGE:-}" ]; then
   fail "HARNESS_LANGUAGE sin definir. Falta el bootstrap: edita harness.config.sh o pide «haz el bootstrap del arnés»."
   exit 1
@@ -119,7 +125,8 @@ fi
 
 echo ""
 echo "── 5. Ejecutando tests ─────────────────────────────────"
-if eval "$HARNESS_TEST_CMD" 2>&1; then
+# Los tests corren en la raíz del proyecto (donde viven src/ y tests/).
+if ( cd "$PROJECT_ROOT_ABS" && eval "$HARNESS_TEST_CMD" ) 2>&1; then
   ok "Todos los tests pasan"
 else
   fail "Hay tests rotos (o el comando de tests falló)"

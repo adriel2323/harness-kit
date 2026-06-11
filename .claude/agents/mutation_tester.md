@@ -26,10 +26,10 @@ mutante que sobrevive es un agujero en la red.
    `HARNESS_MUTATION_THRESHOLD`) y `docs/mutation-testing.md` (reglas).
 2. Identifica los archivos de código tocados por la feature en curso
    (mira `progress/tdd_<name>.md`).
-3. Ejecuta la herramienta de mutación sobre cada archivo relevante:
+3. Ejecuta la herramienta de mutación sobre cada archivo relevante con el
+   wrapper (corre desde la raíz del proyecto y carga el entorno del arnés):
    ```bash
-   # según HARNESS_MUTATION_CMD, p. ej.:
-   python3 tools/mutate.py <archivo>
+   bash tools/run-mutation.sh <archivo>
    ```
    La herramienta aplica mutaciones, corre la suite por cada mutante y
    reporta: `total`, `killed`, `survived`, `score`.

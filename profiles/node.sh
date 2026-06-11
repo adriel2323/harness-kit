@@ -2,6 +2,7 @@
 HARNESS_LANGUAGE="node"
 HARNESS_SRC_DIR="src"
 HARNESS_TESTS_DIR="test"
+HARNESS_PROJECT_ROOT=""
 HARNESS_TEST_CMD="pnpm test --silent"
 HARNESS_TEST_VERBOSE_CMD="pnpm test"
 # Un test en el loop. Con vitest: "pnpm dlx vitest run {file}". Con jest:

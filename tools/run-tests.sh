@@ -6,16 +6,12 @@
 #   --one <file>     corre SOLO el test <file> con HARNESS_TEST_ONE_CMD.
 #                    Si esa variable está sin definir, cae a la suite completa.
 # Sin flags: corre la suite completa (HARNESS_TEST_CMD).
+#
+# Los comandos se ejecutan en la RAÍZ del proyecto (HARNESS_PROJECT_ROOT_ABS),
+# que puede diferir del dir del arnés cuando este vive en harness-kit/.
 set -u
-HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-cd "$HERE" || exit 1
-
-if [ ! -f "harness.config.sh" ]; then
-  echo "[harness] Falta harness.config.sh — corre install.sh" >&2
-  exit 1
-fi
 # shellcheck source=/dev/null
-. ./harness.config.sh
+. "$(dirname "${BASH_SOURCE[0]}")/harness-env.sh" || exit 1
 
 CMD="${HARNESS_TEST_CMD:-}"
 
@@ -27,15 +23,8 @@ case "${1:-}" in
     FILE="${2:-}"
     ONE="${HARNESS_TEST_ONE_CMD:-}"
     case "$ONE" in
-      TODO*|"")
-        # Sin comando de test único: cae a la suite completa (seguro).
-        ;;
-      *)
-        if [ -n "$FILE" ]; then
-          # Sustituye el placeholder {file} por la ruta del test.
-          CMD="${ONE//\{file\}/$FILE}"
-        fi
-        ;;
+      TODO*|"") : ;;                       # sin test único: cae a la suite (seguro)
+      *) [ -n "$FILE" ] && CMD="${ONE//\{file\}/$FILE}" ;;
     esac
     ;;
 esac
@@ -44,4 +33,5 @@ case "$CMD" in
   TODO*|"") echo "[harness] HARNESS_TEST_CMD sin definir" >&2; exit 1 ;;
 esac
 
+cd "$HARNESS_PROJECT_ROOT_ABS" || exit 1
 exec bash -c "$CMD"

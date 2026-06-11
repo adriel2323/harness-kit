@@ -3,6 +3,7 @@
 HARNESS_LANGUAGE="TODO"
 HARNESS_SRC_DIR="src"
 HARNESS_TESTS_DIR="tests"
+HARNESS_PROJECT_ROOT=""
 HARNESS_TEST_CMD="TODO: comando que corre los tests (exit 0 = verde)"
 HARNESS_TEST_VERBOSE_CMD="TODO: comando de tests en modo verboso"
 # Test único en el loop ({file} = ruta del test). Vacío = cae a la suite.

@@ -31,7 +31,7 @@
       "Bash(./init.sh)",
       "Bash(bash tools/run-tests.sh*)",
       "Bash(bash tools/test-affected.sh*)",
-      "Bash(python3 tools/mutate.py*)"
+      "Bash(bash tools/run-mutation.sh*)"
     ],
     "deny": [
       "Read(./node_modules/**)",

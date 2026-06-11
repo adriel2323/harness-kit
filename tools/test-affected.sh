@@ -4,20 +4,19 @@
 #
 # Es la pieza de "test individual en el loop" (reducción de tokens/cómputo):
 # el feedback rápido va aquí; la suite completa sigue corriendo en el gate de
-# cierre (Stop -> init.sh paso 5), así no se pierde cobertura de regresiones.
+# cierre (Stop -> init.sh), así no se pierde cobertura de regresiones.
 #
-# Lee el JSON del hook por stdin, saca .tool_input.file_path, resuelve su
-# archivo de test (via HARNESS_TEST_FILE_PATTERNS) y delega en run-tests.sh.
-# Si no puede mapear a un test, cae a la suite completa (seguro por defecto).
+# Lee el JSON del hook por stdin, saca .tool_input.file_path, lo vuelve relativo
+# a la raíz del proyecto, resuelve su archivo de test (via
+# HARNESS_TEST_FILE_PATTERNS) y delega en run-tests.sh. Si no puede mapear a un
+# test, cae a la suite completa (seguro por defecto). Si se editó un archivo del
+# propio arnés (no del proyecto), no corre nada.
 set -u
-HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-cd "$HERE" || exit 0   # nunca bloqueamos al agente por un fallo del wrapper
-
-[ -f "harness.config.sh" ] || { echo "[harness] sin config; salto"; exit 0; }
 # shellcheck source=/dev/null
-. ./harness.config.sh
+. "$(dirname "${BASH_SOURCE[0]}")/harness-env.sh" || exit 0   # nunca bloqueamos al agente
 
 PAYLOAD="$(cat)"
+RUN="$HARNESS_KIT_DIR/tools/run-tests.sh"
 
 # --- 1. Extraer la ruta del archivo editado del JSON del hook ----------------
 extract_path() {
@@ -33,16 +32,25 @@ extract_path() {
 }
 
 FILE="$(extract_path)"
-# A ruta relativa al repo (los hooks suelen dar rutas absolutas).
+# A ruta relativa a la RAÍZ del proyecto (los hooks suelen dar rutas absolutas).
 case "$FILE" in
-  "$HERE"/*) FILE="${FILE#"$HERE"/}" ;;
+  "$HARNESS_PROJECT_ROOT_ABS"/*) FILE="${FILE#"$HARNESS_PROJECT_ROOT_ABS"/}" ;;
 esac
 
-run_full() { bash tools/run-tests.sh 2>&1 | tail -8; exit 0; }
+run_full() { bash "$RUN" 2>&1 | tail -8; exit 0; }
 
-# Sin archivo, sin comando de test único, o el editado no es de código: suite.
+# Se editó un archivo del propio arnés (harness-kit/...), no código del proyecto:
+# no hay test de app que correr. KIT_REL es "" en layout plano (no aplica).
+KIT_REL="${HARNESS_KIT_DIR#"$HARNESS_PROJECT_ROOT_ABS"/}"
+if [ -n "$KIT_REL" ] && [ "$KIT_REL" != "$HARNESS_KIT_DIR" ]; then
+  case "$FILE" in "$KIT_REL"/*) exit 0 ;; esac
+fi
+
+# Sin archivo, o sin comando de test único: suite completa.
 [ -n "$FILE" ] || run_full
 case "${HARNESS_TEST_ONE_CMD:-}" in TODO*|"") run_full ;; esac
+
+cd "$HARNESS_PROJECT_ROOT_ABS" || run_full
 
 base="$(basename "$FILE")"
 name="${base%.*}"
@@ -61,7 +69,7 @@ TESTFILE=""
 if [ "$is_test_file" = "1" ]; then
   TESTFILE="$FILE"
 else
-  # --- 3. Mapear archivo FUENTE -> su archivo de test --------------------------
+  # --- 3. Mapear archivo FUENTE -> su archivo de test ------------------------
   for tmpl in ${HARNESS_TEST_FILE_PATTERNS:-}; do
     cand="${tmpl//\{name\}/$name}"
     cand="${cand//\{dir\}/$dir}"
@@ -73,5 +81,5 @@ fi
 [ -n "$TESTFILE" ] || run_full
 
 echo "[harness] test individual: $TESTFILE"
-bash tools/run-tests.sh --one "$TESTFILE" 2>&1 | tail -8
+bash "$RUN" --one "$TESTFILE" 2>&1 | tail -8
 exit 0

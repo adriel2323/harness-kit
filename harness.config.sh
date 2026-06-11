@@ -15,6 +15,13 @@ HARNESS_LANGUAGE="TODO"
 HARNESS_SRC_DIR="src"
 HARNESS_TESTS_DIR="tests"
 
+# Ruta (relativa a ESTE archivo) hacia la RAÍZ del proyecto, donde se ejecutan
+# los comandos de test/build/mutación (ahí viven src/ y tests/). Vacío o "."
+# = aquí mismo (layout plano: el arnés está en la raíz). El instalador la pone
+# en ".." cuando el arnés vive en <proyecto>/harness-kit/. Los scripts usan esto
+# para distinguir el directorio del arnés (KIT_DIR) de la raíz del proyecto.
+HARNESS_PROJECT_ROOT=""
+
 # Comando para correr la suite de tests (silencioso) y su variante verbosa.
 # Debe devolver exit code 0 si todo pasa, != 0 si algo falla.
 HARNESS_TEST_CMD="TODO: comando de tests"
