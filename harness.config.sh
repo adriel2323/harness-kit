@@ -20,6 +20,17 @@ HARNESS_TESTS_DIR="tests"
 HARNESS_TEST_CMD="TODO: comando de tests"
 HARNESS_TEST_VERBOSE_CMD="TODO: comando de tests verboso"
 
+# Comando para correr UN solo test (el del archivo editado) en el loop de TDD.
+# `{file}` se reemplaza por la ruta del archivo de test. Si queda vacío o TODO,
+# el arnés cae a la suite completa. La suite completa SIEMPRE corre en el gate
+# de cierre (Stop → init.sh), así el feedback rápido no sacrifica seguridad.
+HARNESS_TEST_ONE_CMD="TODO: comando de un test, p. ej. 'pytest -q {file}'"
+# Cómo localizar el archivo de test de un archivo FUENTE editado. Lista de
+# plantillas separadas por espacio; `{name}` = basename sin extensión,
+# `{dir}` = directorio del fuente. Se corre la primera que exista. Si ninguna
+# existe (o el fuente no mapea a un test), el arnés cae a la suite completa.
+HARNESS_TEST_FILE_PATTERNS=""
+
 # Comando de mutación. Recibe (opcionalmente) un archivo como argumento.
 HARNESS_MUTATION_CMD="TODO: comando de mutación"
 HARNESS_MUTATION_THRESHOLD="100"

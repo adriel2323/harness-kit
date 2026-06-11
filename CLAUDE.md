@@ -63,3 +63,17 @@ contenido. Ver `.claude/agents/craftsman_lead.md` para el patrón completo.
   responde tú directamente, sin lanzar subagentes.
 - Cambios fuera del código y los tests (docs, configuración, `progress/`,
   `features/` cuando solo corriges formato) → puedes editar tú mismo.
+
+### Testing en el loop
+
+En el ciclo TDD corre **el test individual** relevante, no la suite (el hook
+`PostToolUse` ya lo hace; no la dispares a mano). La suite completa es gate de
+cierre: corre sola en el `Stop` hook. Al reportar, muestra **solo lo que falla +
+la causa**, no el log entero.
+
+### Compactación
+
+Al compactar, preserva siempre: la feature activa y su `status` en
+`feature_list.json`; si los escenarios `features/<name>.feature` están
+**aprobados** (la puerta humana) o pendientes; archivos modificados sin cerrar y
+decisiones abiertas; y el puntero a `iteraciones/HISTORIAL.local.md`.

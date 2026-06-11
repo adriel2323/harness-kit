@@ -21,6 +21,10 @@ target/
 *.tmp
 .DS_Store
 
+# Historial local de iteraciones (no se commitea: contexto personal de sesión)
+CLAUDE.local.md
+iteraciones/*.local.md
+
 # Datos de ejemplo (ajusta a tu app)
 .notes.json
 .notes_*.json

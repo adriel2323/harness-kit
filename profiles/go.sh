@@ -4,6 +4,9 @@ HARNESS_SRC_DIR="."
 HARNESS_TESTS_DIR="."
 HARNESS_TEST_CMD="go test ./..."
 HARNESS_TEST_VERBOSE_CMD="go test -v ./..."
+# Un test en el loop: en Go la unidad es el PAQUETE (directorio del archivo).
+HARNESS_TEST_ONE_CMD='go test "./$(dirname {file})"'
+HARNESS_TEST_FILE_PATTERNS="{dir}/{name}_test.go"
 HARNESS_MUTATION_CMD="go-mutesting ./..."
 HARNESS_MUTATION_THRESHOLD="100"
 HARNESS_BUILD_CMD="go build ./..."

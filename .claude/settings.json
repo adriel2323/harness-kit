@@ -7,8 +7,8 @@
         "hooks": [
           {
             "type": "command",
-            "command": "bash tools/run-tests.sh 2>&1 | tail -5",
-            "description": "Tras editar o escribir archivos, corre los tests configurados y muestra el resumen."
+            "command": "bash tools/test-affected.sh",
+            "description": "Tras editar, corre SOLO el test del archivo afectado (feedback rápido en el loop). La suite completa queda para el gate de cierre (Stop -> init.sh)."
           }
         ]
       }
@@ -26,10 +26,41 @@
     ]
   },
   "permissions": {
+    "$deny_comment": "directoryDenyList/denyTools NO existen en Claude Code; el mecanismo real es permissions.deny con reglas Tool(patrón-glob). Bloquear dependencias y artefactos generados evita cargarlos al contexto (costo/tokens); bloquear secretos es seguridad. Los hooks (Bash + init.sh) NO usan la tool Read, así que siguen funcionando.",
     "allow": [
       "Bash(./init.sh)",
       "Bash(bash tools/run-tests.sh*)",
+      "Bash(bash tools/test-affected.sh*)",
       "Bash(python3 tools/mutate.py*)"
+    ],
+    "deny": [
+      "Read(./node_modules/**)",
+      "Read(**/node_modules/**)",
+      "Read(./dist/**)",
+      "Read(./build/**)",
+      "Read(./.next/**)",
+      "Read(./coverage/**)",
+      "Read(./target/**)",
+      "Read(./vendor/**)",
+      "Read(**/__pycache__/**)",
+      "Read(./.venv/**)",
+      "Read(./venv/**)",
+      "Read(./.pytest_cache/**)",
+      "Read(./.mutmut-cache/**)",
+      "Read(./.stryker-tmp/**)",
+      "Read(./.git/**)",
+      "Read(./.env)",
+      "Read(./.env.*)",
+      "Read(./secrets/**)",
+      "Read(./**/*.pem)",
+      "Read(./**/*.key)",
+      "Read(./**/id_rsa)",
+      "Read(./**/id_rsa.*)",
+      "Read(./.ssh/**)",
+      "Read(./.npmrc)",
+      "Read(./.pypirc)",
+      "Read(./credentials)",
+      "Read(./credentials.*)"
     ]
   }
 }
