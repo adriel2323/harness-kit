@@ -12,7 +12,8 @@
 #   ├── .claude/                 # lo único que Claude Code exige en la raíz
 #   │   ├── settings.json        #   hooks → harness-kit/* ; permisos ; deny rules
 #   │   ├── CLAUDE.md            #   puntero fino: importa el arnés + regla de base
-#   │   └── agents/*.md          #   los 7 subagentes
+#   │   ├── agents/*.md          #   los 7 subagentes
+#   │   └── skills/*/SKILL.md    #   skills transversales (commit-hygiene, branch-pr)
 #   └── harness-kit/             # TODO el resto del arnés, self-contained
 #       ├── docs/ tools/ progress/ features/
 #       ├── feature_list.json project-spec.md harness.config.sh init.sh
@@ -81,6 +82,12 @@ AGENT_FILES=(
   "judge.md" "mutation_tester.md" "harness_bootstrap.md"
 )
 
+# ── 1b'. Skills transversales → .claude/skills/ ─────────────────────────
+# (relativos a .claude/skills/; nativas de Claude Code, activadas por trigger)
+SKILL_FILES=(
+  "commit-hygiene/SKILL.md" "branch-pr/SKILL.md"
+)
+
 copy_one() {  # src dst
   local src="$1" dst="$2"
   if [ ! -f "$src" ]; then warn "no existe en el kit: ${src#"$KIT_DIR"/}"; return 1; fi
@@ -95,6 +102,10 @@ for rel in "${KIT_FILES[@]}"; do
 done
 for a in "${AGENT_FILES[@]}"; do
   copy_one "$KIT_DIR/.claude/agents/$a" "$CLAUDE_DST/agents/$a"
+  case $? in 0) copied=$((copied+1)) ;; 2) skipped=$((skipped+1)) ;; esac
+done
+for s in "${SKILL_FILES[@]}"; do
+  copy_one "$KIT_DIR/.claude/skills/$s" "$CLAUDE_DST/skills/$s"
   case $? in 0) copied=$((copied+1)) ;; 2) skipped=$((skipped+1)) ;; esac
 done
 
@@ -193,6 +204,7 @@ build_ignore_block() {
   echo "/.claude/settings.json"
   echo "/.claude/CLAUDE.md"
   for a in "${AGENT_FILES[@]}"; do echo "/.claude/agents/$a"; done
+  for s in "${SKILL_FILES[@]}"; do echo "/.claude/skills/$s"; done
   echo "$GI_END"
 }
 
