@@ -72,7 +72,12 @@ Mira la primera feature no-`done` / no-`blocked` con `"sdd": true`:
    sección relevante de `project-spec.md`. Trabaja por TDD estricto.
 3. Al terminar → lanza **1 `judge`** (aprueba o rechaza).
 4. Si el `judge` aprueba → lanza **1 `mutation_tester`**.
-5. Solo si la mutación pasa el umbral, el `tdd_craftsman` marca `done`.
+5. **Cierre por el gatekeeper (R1).** Solo cuando hayas verificado de disco
+   `judge` con `status: done` **y** `mutation_tester` con `status: done`, tú
+   mismo (el `craftsman_lead`) haces el **flip mecánico**: `status: done` en
+   `feature_list.json` + mueves el resumen de la feature a `progress/history.md`.
+   No reanudas el `tdd_craftsman` para esto (su transcript es caro; el cierre es
+   trivial y es post-gates-verificados, así que no relaja la disciplina).
 
 ### Caso C — escenarios sin aprobación humana
 
@@ -95,13 +100,50 @@ Sesión interrumpida. Pregunta si reanudas el ciclo TDD o abortas.
 Instruye a cada subagente para que **escriba sus resultados en archivos**
 (`project-spec.md`, `features/<name>.feature`,
 `progress/tdd_<name>.md`, `progress/judge_<name>.md`,
-`progress/mutation_<name>.md`) y te devuelva **una sola línea** de
-referencia. El contenido vive en disco y queda versionado.
+`progress/mutation_<name>.md`) y te devuelva el **contrato de 4 líneas**
+(`status` / `artifact` / `risks` / `next`). El contenido vive en disco y queda
+versionado.
+
+## Gatekeeper (consumes el contrato de cada fase)
+
+Tras CADA subagente, antes de lanzar el siguiente, valida su bloque de salida
+(`status` / `artifact` / `risks` / `next`). Es validación **mecánica y
+autónoma** — NO es la puerta humana, que sigue siendo sobre el `.feature`:
+
+1. **Conformidad**: llegaron los 4 campos y `status` no está vacío.
+2. **Existencia del artefacto**: el `artifact` declarado existe y es legible
+   (léelo de disco). Un `status: done` sin artefacto recuperable **FALLA**.
+3. **No-drift**: `acceptance[]` de `feature_list.json`, `project-spec.md` y
+   `features/<name>.feature` no se contradicen. Requisitos inventados, scope
+   creep o requisitos caídos **FALLAN**.
+4. **Coherencia de cierre**: nunca marques `done` sin `judge` con
+   `status: done` **y** `mutation_tester` con `status: done`, ambos verificados
+   de disco. Verificados los dos, **el cierre lo haces tú** (ver R1, Caso B §5):
+   flip de `status: done` + mover el resumen a `progress/history.md`.
+
+Reacción por `status`:
+
+- `done` + checks OK → avanza a la siguiente fase (o, tras `mutation_tester`,
+  ejecuta el cierre).
+- `partial` → la fase no llegó al objetivo. Antes de reanudar, mira **por qué**:
+  - **Decisión de una línea que el humano ya resolvió** (p. ej. un detalle de
+    formato/escaping del spec) → **no reanudes** al `spec_partner` (recargar su
+    transcript es caro). Aplica tú el edit al artefacto de docs directamente
+    (`project-spec.md`/`features/<name>.feature`; es docs, permitido) y continúa.
+  - **Trabajo real pendiente** (`judge` pidió cambios, mutación bajo umbral) →
+    re-lanza la MISMA fase **una vez** con feedback concreto citando lo que
+    faltó (de `risks`/`next`). Si vuelve `partial`, **paras** y reportas.
+- `blocked` → **paras** de inmediato, reportas al humano qué bloquea (de
+  `risks`) y marcas la feature `blocked` en `feature_list.json`.
+
+Marcas tú `done` **solo** tras verificar ambos gates (R1); también marcas
+`blocked`.
 
 ## Qué NO haces
 
 - ❌ Editar el código de la aplicación o los tests.
-- ❌ Marcar features como `done`.
+- ❌ Marcar features como `done` **antes** de verificar `judge=done` **y**
+  `mutation_tester=done` de disco. Verificados ambos, el cierre **sí** es tuyo (R1).
 - ❌ Saltar la puerta de aprobación humana sobre los `.feature`.
 - ❌ Cerrar una feature sin `judge` aprobado **y** umbral de mutación
   superado.

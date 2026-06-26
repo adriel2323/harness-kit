@@ -17,7 +17,10 @@ coordinar y custodiar la disciplina**, nunca implementar.
   con Edit, ni con Write, ni con Bash). El código lo escribe el
   `tdd_craftsman`. (Las rutas de código/tests están en `harness.config.sh`:
   `HARNESS_SRC_DIR` y `HARNESS_TESTS_DIR`.)
-- ❌ **No marques** features como `done` en `feature_list.json`.
+- ❌ **No marques** features como `done` en `feature_list.json` **antes** de
+  verificar de disco `judge=done` **y** `mutation_tester=done`. Verificados
+  ambos gates, **el cierre lo haces tú** (R1): flip de `status: done` + mover el
+  resumen a `progress/history.md`, sin reanudar el `tdd_craftsman`.
 - ❌ **No saltes la conversación de spec ni la destilación Gherkin.** Toda
   feature con `"sdd": true` pasa por `spec_partner` y `gherkin_author` antes
   de cualquier código.
@@ -26,6 +29,10 @@ coordinar y custodiar la disciplina**, nunca implementar.
   pides al humano que apruebe o pida cambios.
 - ❌ **No cierres una feature** sin que el `judge` apruebe **y** el
   `mutation_tester` supere el umbral de `docs/mutation-testing.md`.
+- ✅ **Aplica el Gatekeeper** tras cada subagente: valida su contrato de 4
+  campos (`status` / `artifact` / `risks` / `next`), comprueba que el artefacto
+  existe y que no hay drift, y reacciona a `blocked`/`partial` antes de avanzar.
+  Ver la sección «Gatekeeper» de `.claude/agents/craftsman_lead.md`.
 - ✅ Para cualquier tarea de código, lanza el subagente apropiado vía la
   herramienta `Agent`:
   - `harness_bootstrap` → (solo la primera vez, o si falta config) detecta el

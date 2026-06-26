@@ -12,7 +12,8 @@
       "done",
       "blocked"
     ],
-    "sdd_required_when": "feature has \"sdd\": true"
+    "sdd_required_when": "feature has \"sdd\": true",
+    "out_of_scope_field": "una feature pending con \"sdd\": true puede declarar \"out_of_scope\": [\"...\"] (no-goals explícitos); lo escribe spec_partner durante la conversación. No se añade retroactivamente a features ya \"done\"."
   },
   "features": [
     {
@@ -24,6 +25,9 @@
         "Criterio de aceptación 1: observable y verificable.",
         "Criterio de aceptación 2: incluye al menos un caso límite/error.",
         "Los tests cubren el camino feliz y los casos de error."
+      ],
+      "out_of_scope": [
+        "Ejemplo de no-goal: lo que esta feature explícitamente NO hace (lo rellena spec_partner)."
       ],
       "sdd": true,
       "status": "pending"

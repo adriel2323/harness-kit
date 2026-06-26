@@ -103,4 +103,6 @@ medida real de si la red atrapa peces. Ver `docs/mutation-testing.md`.
 | `feature_list.json`              | craftsman_lead / tdd_craftsman | `pending → spec_ready → in_progress → done` |
 
 Regla anti-teléfono-descompuesto: los subagentes escriben en disco y
-devuelven una línea de referencia. El contenido no circula por chat.
+devuelven un **contrato de 4 líneas** (`status` / `artifact` / `risks` /
+`next`) que el `craftsman_lead` valida como gatekeeper. El contenido no circula
+por chat.

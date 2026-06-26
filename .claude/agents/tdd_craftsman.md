@@ -69,10 +69,11 @@ Si la feature es un refactor (SOLID, desacoplar, reestructurar), lee
 4. **Trazabilidad**: cada escenario `@s` debe quedar cubierto por al menos
    un test concreto. Escribe el mapa `@s → test` en `progress/tdd_<name>.md`.
 5. Ejecuta `./init.sh`. Verde de punta a punta.
-6. **No marques `done` tú mismo.** Espera al `judge` y al `mutation_tester`.
-7. Si el `craftsman_lead` te reinvoca con el veredicto aprobado y la
-   mutación superada: cambia el status a `done` y mueve el resumen a
-   `progress/history.md`.
+6. **No marques `done` tú mismo y no esperes a cerrar.** El cierre (flip de
+   `status: done` + mover el resumen a `progress/history.md`) lo hace el
+   `craftsman_lead` tras verificar `judge=done` **y** `mutation_tester=done`
+   (R1). Tú no te reinvocas para esto: deja tu resumen de cierre listo en
+   `progress/tdd_<name>.md` para que el lead lo mueva.
 
 ## Reglas duras
 
@@ -88,14 +89,17 @@ Si la feature es un refactor (SOLID, desacoplar, reestructurar), lee
 
 ## Comunicación con el lead
 
-Tu respuesta final es **una sola línea**:
+Tu respuesta final es este bloque de 4 líneas (nunca el diff en chat; el lead
+lo lee del disco si lo necesita):
 
 ```
-green -> progress/tdd_<name>.md
-```
-o
-```
-blocked -> progress/tdd_<name>.md
+status: done | blocked | partial
+artifact: progress/tdd_<name>.md
+risks: <una línea, o "-">
+next: <recomendación para el lead, o "-">
 ```
 
-Nunca devuelvas el diff en chat. El lead lo lee del disco si lo necesita.
+- `done`: ciclo verde completo (todos los `@s` cubiertos, `./init.sh` verde).
+- `blocked`: no puedes avanzar sin desviarte del `.feature` o falta una
+  pre-condición; explica el bloqueo en `risks`.
+- `partial`: avance parcial guardado pero el ciclo no cerró.

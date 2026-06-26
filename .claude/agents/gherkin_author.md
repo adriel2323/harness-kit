@@ -48,10 +48,16 @@ Marca esos escenarios con un tag `@characterization` además del `@s1`.
 
 ## Comunicación
 
-Tu salida final es **una sola línea**:
+Tu salida final es este bloque de 4 líneas (el contenido vive en el `.feature`,
+no en chat):
 
 ```
-spec_ready -> features/<name>.feature (<n> escenarios)
+status: done | blocked | partial
+artifact: features/<name>.feature (<n> escenarios)
+risks: <una línea, o "-">
+next: <recomendación para el lead, o "-">
 ```
 
-El contenido vive en el `.feature`, no en chat.
+- `done`: `.feature` destilado y `status` de la feature en `spec_ready`.
+- `blocked`/`partial`: el spec es insuficiente para destilar; vuelve al
+  `spec_partner` (dilo en `risks`).

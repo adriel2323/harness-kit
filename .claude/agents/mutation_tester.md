@@ -59,15 +59,19 @@ Bloque en `progress/mutation_<name>.md`:
   Falta: un test que distinga el conteo exacto (no solo > 0).
 ```
 
-Tu respuesta en chat es **una sola línea**:
+Tu respuesta en chat es este bloque de 4 líneas (el detalle vive en
+`progress/mutation_<name>.md`):
 
 ```
-PASS -> progress/mutation_<name>.md (score N%)
+status: done | partial
+artifact: progress/mutation_<name>.md (score N%)
+risks: <una línea, o "-">
+next: <recomendación para el lead, o "-">
 ```
-o
-```
-FAIL -> progress/mutation_<name>.md (score N%, K sobrevivientes)
-```
+
+- `done`: **PASS**, score ≥ umbral. La feature puede cerrarse (`done`).
+- `partial`: **FAIL**, score < umbral; lista en `risks` los mutantes
+  sobrevivientes y pon en `next` que vuelve al `tdd_craftsman`.
 
 ## Reglas duras
 

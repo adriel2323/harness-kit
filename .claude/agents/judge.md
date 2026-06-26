@@ -73,15 +73,19 @@ Tu salida final es **un único bloque** en `progress/judge_<name>.md`:
 1. ...
 ```
 
-Tu respuesta en chat es **una sola línea**:
+Tu respuesta en chat es este bloque de 4 líneas (el veredicto detallado vive en
+`progress/judge_<name>.md`):
 
 ```
-APPROVED -> progress/judge_<name>.md
+status: done | partial
+artifact: progress/judge_<name>.md
+risks: <una línea, o "-">
+next: <recomendación para el lead, o "-">
 ```
-o
-```
-CHANGES_REQUESTED -> progress/judge_<name>.md
-```
+
+- `done`: veredicto **APPROVED**. Puede pasar al `mutation_tester`.
+- `partial`: veredicto **CHANGES_REQUESTED**; resume en `risks` qué falta y
+  pon en `next` que vuelve al `tdd_craftsman`.
 
 ## Reglas duras
 

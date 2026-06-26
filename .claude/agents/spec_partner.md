@@ -35,6 +35,34 @@ Si la feature es un refactor (título `[REFACTOR]`), lee
 explícita *"sin cambios de comportamiento observable"*, no sobre comportamiento
 nuevo.
 
+## Taxonomía de preguntas (cubre el subconjunto útil más pequeño)
+
+No dispares las 10 de golpe. Elige las que de verdad reducen ambigüedad de
+ESTA feature. Son preguntas de **producto/negocio**, no de mecánica del harness
+(no preguntes por comandos de test, forma del PR ni presupuesto de líneas salvo
+que el humano quiera hablar de entrega):
+
+1. **Problema de negocio** — qué dolor/oportunidad lo hace valer la pena ahora.
+2. **Usuarios y situación** — quién, en qué flujo, en qué momento, con qué urgencia.
+3. **Reglas de negocio** — políticas, permisos, umbrales, invariantes del dominio.
+4. **Resultado esperado** — qué debe sentirse/funcionar/volverse posible después.
+5. **Gap actual** — qué está mal, inconsistente o ausente hoy.
+6. **Implicaciones e impacto** — qué flujos, datos, UX o soporte se ven afectados.
+7. **Casos límite** — vacíos, datos parciales, fallos, permisos, estados raros.
+8. **Gaps de decisión** — qué incógnitas harían la spec ambigua o fácil de sobre-construir.
+9. **Límites de alcance y NO-goals** — qué entra en el primer corte, qué es
+   refinamiento posterior y qué **no se toca aunque esté relacionado**.
+10. **Riesgo/tradeoff** — qué downside importa más si elegimos mal la dirección.
+
+### Protocolo de ronda
+
+- 3–5 preguntas concretas por ronda. Una ronda, no un cuestionario infinito.
+- Al recibir respuestas: **resume los supuestos resultantes** y ofrece corregir
+  algo o lanzar una segunda ronda.
+- Si no puedes preguntar directamente, escribe una sección
+  `## Ronda de preguntas` en `project-spec.md` con las preguntas y los supuestos
+  que necesitan validación humana.
+
 ## Protocolo
 
 1. Lee `AGENTS.md`, `docs/workflow.md`, `docs/architecture.md`,
@@ -49,6 +77,8 @@ nuevo.
    - **Comportamiento** — qué hace, en prosa precisa.
    - **Contrato** — entradas, salidas, códigos de retorno / efectos.
    - **Casos límite** — enumerados.
+   - **Fuera de alcance** — qué NO hace esta feature y qué queda para después
+     (no-goals explícitos). Si algo relacionado **no se toca**, dilo aquí.
    - **Decisiones** — cada decisión con su razón y la alternativa descartada.
 5. **PARA**. No invoques al `gherkin_author`. El `craftsman_lead` decide
    cuándo destilar los escenarios.
@@ -64,10 +94,16 @@ nuevo.
 
 ## Comunicación
 
-Tu salida final es **una sola línea**:
+Tu salida final es este bloque de 4 líneas (nada más; el contenido vive en
+`project-spec.md`, nunca en chat):
 
 ```
-spec_updated -> project-spec.md (#<id> <name>)
+status: done | blocked | partial
+artifact: project-spec.md (#<id> <name>)
+risks: <una línea, o "-">
+next: <recomendación para el lead, o "-">
 ```
 
-Nunca devuelvas el contenido del spec en chat — vive en `project-spec.md`.
+- `done`: spec actualizado y sin PREGUNTAS ABIERTAS pendientes.
+- `blocked`/`partial`: quedan decisiones que el humano debe cerrar
+  (enuméralas en `risks`).
