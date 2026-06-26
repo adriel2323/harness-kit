@@ -21,7 +21,42 @@ deja que la disciplina (TDD + juicio + mutación) la talle.
    lanza **`harness_bootstrap`** y para hasta que el entorno esté listo.
 3. Lee `feature_list.json` y `progress/current.md`.
 4. Lee `docs/workflow.md` (el pipeline completo) antes de coordinar nada.
-5. Ejecuta `./init.sh`. Si falla, paras y reportas.
+5. Lee `model-map.yaml` **una sola vez** y cachea la resolución `fase → modelo`
+   (ver «Resolución de modelo»). Si el archivo falta, usa `opus` para todas las
+   fases y regístralo.
+6. Ejecuta `./init.sh`. Si falla, paras y reportas.
+
+## Resolución de modelo (Lote 2 · R2-A · perfil solo Claude)
+
+Cada fase corre en el modelo que le toca, no todas en Opus. La fuente de verdad
+es `model-map.yaml`; la justificación honesta por fase, `docs/model-fit.md`.
+
+**Cómo resolver (1× por sesión, cacheado):**
+
+1. Lee `active_profile` y `profiles.<perfil>.tiers` de `model-map.yaml`.
+2. Para cada fase, mira su tier en `phase_tiers` y traduce
+   `tier → tiers.<tier>.agent_model` (alias `opus`/`sonnet`/`haiku`).
+3. Mapa resultante con el perfil `anthropic`:
+   - `spec_partner` → **opus** · `judge` → **opus** (deep, no abaratar).
+   - `gherkin_author` → **sonnet** · `tdd_craftsman` → **sonnet** (standard).
+   - `mutation_tester` → **haiku** · `harness_bootstrap` → **haiku** ·
+     `Explore` → **haiku** (cheap). El cierre lo haces tú (R1), sin subagente.
+
+**Cómo aplicar:** en **cada** llamada a `Agent`, pasa `model:` con el alias
+resuelto para esa fase. Ej.: `Agent(subagent_type="judge", model="opus", …)`,
+`Agent(subagent_type="tdd_craftsman", model="sonnet", …)`.
+
+**Degradación (no fallar en silencio):** si el modelo asignado no está
+disponible, baja al siguiente tier según `degrade` (`deep→standard→cheap`),
+úsalo, y **regístralo** en tu mensaje y en el `progress/` de la fase.
+
+**Traza para el banco A/B:** al lanzar cada fase, deja en el log la línea
+`fase → modelo resuelto` (y la degradación si la hubo). Es la columna "Modelo
+resuelto" de `docs/model-fit.md` §5/§7.
+
+**Excepción a pedido:** si el humano pide explícitamente más capacidad para una
+feature difícil, puedes subir `tdd_craftsman` a `deep` (opus) esa vez; déjalo
+registrado. No hay tier `max`/`fable` por defecto.
 
 ## El pipeline (obligatorio)
 

@@ -45,6 +45,12 @@ coordinar y custodiar la disciplina**, nunca implementar.
   - `mutation_tester` → corre la mutación y exige el umbral.
   - Si hace falta investigar, lanza 2-3 `Explore` en paralelo con preguntas
     acotadas.
+- ✅ **Resuelve el modelo por fase** desde `model-map.yaml` (Lote 2): lee el
+  mapa 1× por sesión y pasa `model:` en cada llamada a `Agent` según
+  `fase → tier → modelo` (`spec_partner`/`judge`=opus, `gherkin`/`tdd`=sonnet,
+  `mutation`/`bootstrap`/`Explore`=haiku). Si falta un modelo, degrada dentro
+  del proveedor y **regístralo**; no falles en silencio. Justificación honesta
+  en `docs/model-fit.md`.
 
 ### Protocolo de arranque (al recibir la primera tarea)
 
@@ -53,8 +59,9 @@ coordinar y custodiar la disciplina**, nunca implementar.
    lanza **`harness_bootstrap`** antes de cualquier otra cosa.
 3. Lee `feature_list.json` y `progress/current.md`.
 4. Lee `docs/workflow.md` (el pipeline completo).
-5. Ejecuta `./init.sh`. Si falla, paras y reportas.
-6. Aplica el flujo de `.claude/agents/craftsman_lead.md`.
+5. Lee `model-map.yaml` y cachea la resolución `fase → modelo`.
+6. Ejecuta `./init.sh`. Si falla, paras y reportas.
+7. Aplica el flujo de `.claude/agents/craftsman_lead.md`.
 
 ### Regla anti-teléfono-descompuesto
 
