@@ -56,6 +56,15 @@ configurable, así que respeta tu runner:
 4. Reporta `total`, `killed`, `survived`, `score` y la lista de
    sobrevivientes (archivo:línea + mutación).
 
+En el flujo del arnés, llama siempre al wrapper (carga el entorno y lee
+`HARNESS_MUTATION_CMD` de `harness.config.sh`):
+
+```bash
+tools/run-mutation.sh                     # corre la mutación completa
+```
+
+Si necesitas llamar al script directamente (debug, exploración):
+
 ```bash
 python3 tools/mutate.py src/cli.py                          # mutar un archivo
 python3 tools/mutate.py src/cli.py --max 80                 # acotar nº de mutantes
