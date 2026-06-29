@@ -21,6 +21,9 @@
 4. Lee `feature_list.json`. Toda feature nueva (`"sdd": true`) recorre el
    pipeline de cinco fases — ver `docs/workflow.md` y §4.
 5. Lee `docs/workflow.md` antes de coordinar nada.
+6. Lee `model-map.yaml` **una sola vez** y cachea la resolución `fase → modelo`
+   antes de lanzar cualquier subagente (`spec_partner`/`judge` → opus,
+   `gherkin_author`/`tdd_craftsman` → sonnet, resto → haiku).
 
 ## 2. Mapa del repositorio
 
@@ -46,6 +49,8 @@
 | `tools/test-affected.sh`     | Hook PostToolUse: corre solo el test del archivo editado (loop rápido)       | Automático tras Edit/Write |
 | `tools/run-mutation.sh`      | Wrapper: corre la mutación desde la raíz del proyecto, con el entorno cargado | Fase de mutación |
 | `.claude/agents/`            | `harness_bootstrap`, `craftsman_lead`, `spec_partner`, `gherkin_author`, `tdd_craftsman`, `judge`, `mutation_tester` | Si orquestas trabajo |
+| `.claude/skills/`            | `commit-hygiene` (commits limpios por feature), `branch-pr` (rama y PR al integrar) | Al commitear o abrir un PR |
+| `model-map.yaml`             | Fuente de verdad `fase → tier → modelo`; se lee 1× al arrancar                       | Antes de lanzar subagentes |
 
 > Las rutas del código y los tests no están hardcodeadas: las define
 > `HARNESS_SRC_DIR` y `HARNESS_TESTS_DIR` en `harness.config.sh`.
@@ -89,8 +94,10 @@ pending
 6. El `tdd_craftsman` recorre cada escenario `@s` con ciclos Rojo-Verde-Refactor.
 7. El `judge` revisa cobertura, disciplina TDD y calidad; aprueba o rechaza.
 8. El `mutation_tester` corre la mutación; exige el umbral.
-9. Si todo pasa, el `tdd_craftsman` marca `done` y mueve el resumen a
-   `progress/history.md`.
+9. Si todo pasa, el **`craftsman_lead`** verifica de disco `judge=done` y
+   `mutation_tester=done`, hace el flip a `status: done` en `feature_list.json`
+   y mueve el resumen a `progress/history.md` (R1 — el cierre es suyo, no del
+   `tdd_craftsman`).
 
 ## 5. Cierre de sesión (lifecycle)
 

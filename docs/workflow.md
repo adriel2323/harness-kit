@@ -100,7 +100,7 @@ medida real de si la red atrapa peces. Ver `docs/mutation-testing.md`.
 | `progress/tdd_<name>.md`         | tdd_craftsman     | Bitácora de ciclos + mapa `@s → test`               |
 | `progress/judge_<name>.md`       | judge             | Veredicto de review + checkpoints                   |
 | `progress/mutation_<name>.md`    | mutation_tester   | Score de mutación + mutantes sobrevivientes         |
-| `feature_list.json`              | craftsman_lead / tdd_craftsman | `pending → spec_ready → in_progress → done` |
+| `feature_list.json`              | craftsman_lead (estados intermedios y cierre `done` via R1) | `pending → spec_ready → in_progress → done` |
 
 Regla anti-teléfono-descompuesto: los subagentes escriben en disco y
 devuelven un **contrato de 4 líneas** (`status` / `artifact` / `risks` /
