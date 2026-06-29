@@ -13,7 +13,7 @@
 #   │   ├── settings.json        #   hooks → harness-kit/* ; permisos ; deny rules
 #   │   ├── CLAUDE.md            #   puntero fino: importa el arnés + regla de base
 #   │   ├── agents/*.md          #   los 7 subagentes
-#   │   └── skills/*/SKILL.md    #   skills transversales (commit-hygiene, branch-pr)
+#   │   └── skills/*/SKILL.md    #   skills transversales (commit-hygiene, branch-pr, progress-log)
 #   └── harness-kit/             # TODO el resto del arnés, self-contained
 #       ├── docs/ tools/ progress/ features/
 #       ├── feature_list.json project-spec.md harness.config.sh init.sh
@@ -85,7 +85,7 @@ AGENT_FILES=(
 # ── 1b'. Skills transversales → .claude/skills/ ─────────────────────────
 # (relativos a .claude/skills/; nativas de Claude Code, activadas por trigger)
 SKILL_FILES=(
-  "commit-hygiene/SKILL.md" "branch-pr/SKILL.md"
+  "commit-hygiene/SKILL.md" "branch-pr/SKILL.md" "progress-log/SKILL.md"
 )
 
 copy_one() {  # src dst

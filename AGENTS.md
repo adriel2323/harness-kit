@@ -49,7 +49,7 @@
 | `tools/test-affected.sh`     | Hook PostToolUse: corre solo el test del archivo editado (loop rápido)       | Automático tras Edit/Write |
 | `tools/run-mutation.sh`      | Wrapper: corre la mutación desde la raíz del proyecto, con el entorno cargado | Fase de mutación |
 | `.claude/agents/`            | `harness_bootstrap`, `craftsman_lead`, `spec_partner`, `gherkin_author`, `tdd_craftsman`, `judge`, `mutation_tester` | Si orquestas trabajo |
-| `.claude/skills/`            | `commit-hygiene` (commits limpios por feature), `branch-pr` (rama y PR al integrar) | Al commitear o abrir un PR |
+| `.claude/skills/`            | `commit-hygiene` (commits limpios), `branch-pr` (rama y PR), `progress-log` (bitácoras y anti-teléfono) | Al commitear, PR o registrar progreso |
 | `model-map.yaml`             | Fuente de verdad `fase → tier → modelo`; se lee 1× al arrancar                       | Antes de lanzar subagentes |
 
 > Las rutas del código y los tests no están hardcodeadas: las define
