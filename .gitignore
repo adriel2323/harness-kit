@@ -25,6 +25,9 @@ target/
 CLAUDE.local.md
 iteraciones/*.local.md
 
+# Registro de instalaciones (rutas locales de esta máquina; lo gestiona install.sh)
+.harness-installs
+
 # Datos de ejemplo (ajusta a tu app)
 .notes.json
 .notes_*.json
