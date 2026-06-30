@@ -5,9 +5,13 @@
 > mundos: **Claude** (Agent tool), **OpenCode Go** (suscripción de pago) y
 > **Codex** (GPT-5.x CLI). Entrega por **lotes**, base primero y multi-proveedor
 > después, con criterios de decisión.
-> Estado: **en curso** — Lotes 0, 1 y 2 implementados; 3–7 pendientes.
+> Estado: **en curso** — Lotes 0, 1 y 2 implementados; Lotes 2bis y 6 en curso; 3–5, 7 pendientes.
 > (Lote 2 cerrado 2026-06-26: `model-map.yaml` en raíz + kit, bloque
 > «Resolución de modelo» en `craftsman_lead.md`, bullet en ambos `CLAUDE.md`.)
+> (Lote 2bis 2026-06-30: perfil `opencode_go` en `model-map.yaml`,
+> `.opencode/agents/` con 3 definiciones, `tools/run-opencode.sh` wrapper,
+> bloque híbrido en `craftsman_lead.md`.)
+> (Lote 6 — piloto híbrido: implementado como modo híbrido en vez de Codex.)
 
 ## Contexto
 
@@ -218,11 +222,14 @@ gates** como criterios de promoción, no solo coste.
 ## Archivos a tocar (resumen)
 
 - Nuevos: `docs/model-fit.md`, `model-map.yaml` (kit + raíz),
-  `_shared/phase-common.md`, `tools/run-codex-tdd.sh`.
+  `_shared/phase-common.md`, `tools/run-codex-tdd.sh`,
+  `.opencode/agents/gherkin_author.md`, `.opencode/agents/tdd_craftsman.md`,
+  `.opencode/agents/mutation_tester.md`, `tools/run-opencode.sh`.
 - Editados: `CLAUDE.md`, `.claude/agents/craftsman_lead.md`,
   `.claude/agents/judge.md`, los preámbulos de `.claude/agents/*.md`,
   `craftsman-harness-kit/harness.config.sh`,
-  `docs/plan-p2-rendimiento.md` (enlazar la investigación).
+  `docs/plan-p2-rendimiento.md` (enlazar la investigación),
+  `AGENTS.md` (tabla y regla 6 del arranque).
 - Sin tocar: garantías del flujo (puerta humana, judge, mutación, gatekeeper P1).
 
 ## Verificación

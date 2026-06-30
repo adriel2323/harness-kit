@@ -1,15 +1,13 @@
-# model-map.yaml — Lote 2 (R2-A): modelo por fase, perfil **solo Claude**.
-#
-# Única fuente de verdad para "qué modelo corre cada fase". Lo consume el
-# `craftsman_lead` LEYÉNDOLO 1× por sesión (no hay parser shell): cachea
-# fase→modelo y pasa `model:` en cada llamada a la herramienta `Agent`.
+# model-map.yaml — Fuente de verdad para "qué modelo corre cada fase".
 #
 # Doble indirección: fase → tier (capacidad, agnóstico de proveedor) → modelo.
-# Cambiar de proveedor = cambiar `active_profile`; el mapa `phase_tiers` no se
-# toca. Investigación y justificación honesta: `docs/model-fit.md`.
+# Lo consumen TANTO Claude Code (craftsman_lead) como opencode (wrapper).
+# Cambiar de proveedor = cambiar `active_profile`; el mapa `phase_tiers` no se toca.
+# Investigación y justificación honesta: `docs/model-fit.md`.
 
-# Perfil de proveedor activo. Hoy solo `anthropic` (Ruta A). Los perfiles
-# multi-proveedor (`opencode_zen`) llegan en el Lote 7, no antes.
+# Perfil activo. Determina qué proveedor/models se usan.
+#   - anthropic    → Claude Code puro (Agent tool, alias opus/sonnet/haiku)
+#   - opencode_go  → híbrido: Claude + OpenCode Go (suscripción $10/mes)
 active_profile: anthropic
 
 profiles:
@@ -25,6 +23,16 @@ profiles:
     # siguiente tier y REGÍSTRALO (no falles en silencio). Ver craftsman_lead.
     degrade: [deep, standard, cheap]
 
+  opencode_go:
+    # Suscripción OpenCode Go ($10/mes). agent_model usa formato provider/model
+    # que acepta `opencode run --model`. Los IDs exactos están en docs.go.
+    # spec_partner y judge NO tienen modelo Go: caen a Claude vía Agent().
+    tiers:
+      deep:     { agent_model: anthropic/claude-opus-4-8,           id: claude-opus-4-8 }
+      standard: { agent_model: opencode-go/deepseek-v4-pro,        id: deepseek-v4-pro }
+      cheap:    { agent_model: opencode-go/deepseek-v4-flash,      id: deepseek-v4-flash }
+    degrade: [deep, standard, cheap]
+
 # fase → tier semántico. NO se toca al cambiar de proveedor.
 # Justificación por fila en docs/model-fit.md §3.
 phase_tiers:
@@ -37,7 +45,13 @@ phase_tiers:
   cierre:            cheap     # flip de estado (R1): lo hace el lead, sin subagente
   Explore:           cheap     # barrido de lectura
 
-# Hueco reservado para el Lote 7 (multi-proveedor real vía OpenCode Go).
-# Documentado pero NO consumido aún: aquí irían overrides fase→proveedor/modelo
-# externo (p. ej. gherkin/tdd a Qwen3/GLM de OpenCode Zen). Hoy vacío.
-phase_overrides: {}
+# Overrides por fase: permiten asignar un modelo CONCRETO distinto al que
+# le tocaria por tier. Solo se activan si active_profile NO es anthropic.
+# Sintaxis: <fase>: { model: <id completo opencode>, provider: <provider> }
+# - Si se omite model, se usa el del tier.
+# - spec_partner y judge no tienen override: siempre Claude Opus.
+phase_overrides:
+  gherkin_author:   { model: opencode-go/glm-5.2 }
+  tdd_craftsman:    { model: opencode-go/deepseek-v4-pro }
+  mutation_tester:  { model: opencode-go/deepseek-v4-flash }
+  harness_bootstrap: { model: opencode-go/deepseek-v4-flash }

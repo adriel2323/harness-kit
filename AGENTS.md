@@ -22,8 +22,10 @@
    pipeline de cinco fases — ver `docs/workflow.md` y §4.
 5. Lee `docs/workflow.md` antes de coordinar nada.
 6. Lee `model-map.yaml` **una sola vez** y cachea la resolución `fase → modelo`
-   antes de lanzar cualquier subagente (`spec_partner`/`judge` → opus,
-   `gherkin_author`/`tdd_craftsman` → sonnet, resto → haiku).
+   antes de lanzar cualquier subagente. Según `active_profile`:
+   - `anthropic`: `spec`/`judge`=opus, `gherkin`/`tdd`=sonnet, resto=haiku
+   - `opencode_go`: `spec`/`judge`=Claude Opus (Agent); `gherkin`→GLM-5.2,
+     `tdd`→DeepSeek V4 Pro, `mutation`/`bootstrap`→DeepSeek V4 Flash (opencode).
 
 ## 2. Mapa del repositorio
 
@@ -48,9 +50,10 @@
 | `tools/run-tests.sh`         | Wrapper agnóstico: corre la suite (`--one <file>` para un solo test)         | Para verificar |
 | `tools/test-affected.sh`     | Hook PostToolUse: corre solo el test del archivo editado (loop rápido)       | Automático tras Edit/Write |
 | `tools/run-mutation.sh`      | Wrapper: corre la mutación desde la raíz del proyecto, con el entorno cargado | Fase de mutación |
+| `.opencode/agents/`         | Subagentes opencode Go (`gherkin_author`, `tdd_craftsman`, `mutation_tester`) — para el perfil híbrido | Si `active_profile` == `opencode_go` |
 | `.claude/agents/`            | `harness_bootstrap`, `craftsman_lead`, `spec_partner`, `gherkin_author`, `tdd_craftsman`, `judge`, `mutation_tester` | Si orquestas trabajo |
 | `.claude/skills/`            | `commit-hygiene` (commits limpios), `branch-pr` (rama y PR), `progress-log` (bitácoras y anti-teléfono) | Al commitear, PR o registrar progreso |
-| `model-map.yaml`             | Fuente de verdad `fase → tier → modelo`; se lee 1× al arrancar                       | Antes de lanzar subagentes |
+| `model-map.yaml`             | Fuente de verdad `fase → tier → modelo` (perfiles anthropic y opencode_go); se lee 1× al arrancar | Antes de lanzar subagentes |
 
 > Las rutas del código y los tests no están hardcodeadas: las define
 > `HARNESS_SRC_DIR` y `HARNESS_TESTS_DIR` en `harness.config.sh`.

@@ -45,12 +45,15 @@ coordinar y custodiar la disciplina**, nunca implementar.
   - `mutation_tester` → corre la mutación y exige el umbral.
   - Si hace falta investigar, lanza 2-3 `Explore` en paralelo con preguntas
     acotadas.
-- ✅ **Resuelve el modelo por fase** desde `model-map.yaml` (Lote 2): lee el
-  mapa 1× por sesión y pasa `model:` en cada llamada a `Agent` según
-  `fase → tier → modelo` (`spec_partner`/`judge`=opus, `gherkin`/`tdd`=sonnet,
-  `mutation`/`bootstrap`/`Explore`=haiku). Si falta un modelo, degrada dentro
-  del proveedor y **regístralo**; no falles en silencio. Justificación honesta
-  en `docs/model-fit.md`.
+- ✅ **Resuelve el modelo por fase** desde `model-map.yaml` (Lote 2 + híbrido
+  opencode): lee el mapa 1× por sesión. Según `active_profile`:
+  - `anthropic`: todas las fases vía `Agent(model=...)` como antes
+    (`spec`/`judge`=opus, `gherkin`/`tdd`=sonnet, `mutation`/`bootstrap`=haiku).
+  - `opencode_go`: modo híbrido — `spec_partner`/`judge` siguen en
+    `Agent(model="opus")`; `gherkin`/`tdd`/`mutation`/`bootstrap` se delegan
+    a opencode Go vía `tools/run-opencode.sh`.
+  Si falta un modelo, degrada dentro del proveedor y **regístralo**; no falles
+  en silencio. Justificación honesta en `docs/model-fit.md`.
 
 ### Protocolo de arranque (al recibir la primera tarea)
 

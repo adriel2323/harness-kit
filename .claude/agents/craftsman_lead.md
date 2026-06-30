@@ -26,25 +26,58 @@ deja que la disciplina (TDD + juicio + mutación) la talle.
    fases y regístralo.
 6. Ejecuta `./init.sh`. Si falla, paras y reportas.
 
-## Resolución de modelo (Lote 2 · R2-A · perfil solo Claude)
+## Resolución de modelo (Lote 2 + híbrido opencode)
 
-Cada fase corre en el modelo que le toca, no todas en Opus. La fuente de verdad
-es `model-map.yaml`; la justificación honesta por fase, `docs/model-fit.md`.
+Cada fase corre en el modelo que le toca, no todas en Opus.
+La fuente de verdad es `model-map.yaml` (única para Claude Code y opencode).
 
 **Cómo resolver (1× por sesión, cacheado):**
 
 1. Lee `active_profile` y `profiles.<perfil>.tiers` de `model-map.yaml`.
 2. Para cada fase, mira su tier en `phase_tiers` y traduce
-   `tier → tiers.<tier>.agent_model` (alias `opus`/`sonnet`/`haiku`).
-3. Mapa resultante con el perfil `anthropic`:
-   - `spec_partner` → **opus** · `judge` → **opus** (deep, no abaratar).
-   - `gherkin_author` → **sonnet** · `tdd_craftsman` → **sonnet** (standard).
-   - `mutation_tester` → **haiku** · `harness_bootstrap` → **haiku** ·
-     `Explore` → **haiku** (cheap). El cierre lo haces tú (R1), sin subagente.
+   `tier → tiers.<tier>.agent_model`.
+3. **Modo de invocación** — según `active_profile`:
+   - Si `active_profile == "anthropic"` → todas las fases vía `Agent(model=...)`
+   - Si `active_profile == "opencode_go"` → modo híbrido (ver abajo)
 
-**Cómo aplicar:** en **cada** llamada a `Agent`, pasa `model:` con el alias
-resuelto para esa fase. Ej.: `Agent(subagent_type="judge", model="opus", …)`,
-`Agent(subagent_type="tdd_craftsman", model="sonnet", …)`.
+**Mapa de invocación por perfil:**
+
+| Fase | anthropic | opencode_go |
+|------|-----------|-------------|
+| `spec_partner`   | `Agent(model="opus")`     | `Agent(model="opus")` — siempre Claude |
+| `gherkin_author` | `Agent(model="sonnet")`   | `tools/run-opencode.sh` → GLM-5.2 |
+| `tdd_craftsman`  | `Agent(model="sonnet")`   | `tools/run-opencode.sh` → DeepSeek V4 Pro |
+| `judge`          | `Agent(model="opus")`     | `Agent(model="opus")` — siempre Claude |
+| `mutation_tester`| `Agent(model="haiku")`    | `tools/run-opencode.sh` → DeepSeek V4 Flash |
+| bootstrap        | `Agent(model="haiku")`    | `tools/run-opencode.sh` → DeepSeek V4 Flash |
+| cierre           | Lo haces tú (R1)             | Lo haces tú (R1) |
+
+**spec_partner y judge siempre en Claude Opus**, independientemente del perfil.
+Son los gates de calidad donde la composición importa; abaratarlos contamina
+todo el flujo aguas abajo.
+
+**Cómo aplicar modo anthropic:** en cada llamada a `Agent`, pasa `model:`.
+Ej.: `Agent(subagent_type="judge", model="opus", …)`.
+
+**Cómo aplicar modo híbrido (opencode_go):**
+
+1. `spec_partner` y `judge`: igual que anthropic → `Agent(model="opus")`.
+2. `gherkin_author`, `tdd_craftsman`, `mutation_tester`, `harness_bootstrap`:
+   shell-out a opencode vía el wrapper:
+   ```
+   bash tools/run-opencode.sh gherkin_author
+   bash tools/run-opencode.sh tdd_craftsman
+   bash tools/run-opencode.sh mutation_tester
+   ```
+   El wrapper devuelve el contrato de 4 campos igual que `Agent()`.
+   Aplica el mismo gatekeeper (validar `status`/`artifact`/`risks`/`next`).
+
+**Overrides por fase (phase_overrides en model-map.yaml):**
+Cuando `active_profile == "opencode_go"`, ciertas fases usan un modelo concreto
+distinto al que les tocaria por tier. Por ejemplo, `gherkin_author` usa GLM-5.2
+en vez de DeepSeek V4 Pro (que es el `standard` de Go). Los overrides están
+definidos en `model-map.yaml` y se resuelven automáticamente: si una fase tiene
+override, `tools/run-opencode.sh` recibe el modelo override.
 
 **Degradación (no fallar en silencio):** si el modelo asignado no está
 disponible, baja al siguiente tier según `degrade` (`deep→standard→cheap`),
