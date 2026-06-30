@@ -70,8 +70,9 @@ Desde la carpeta del kit, instálalo en la raíz de tu proyecto:
 
 El instalador:
 
-1. Copia el arnés a la raíz del proyecto (sin pisar archivos existentes salvo
-   que pases `--force`).
+1. Instala con **layout consolidado**: la maquinaria va a `harness-kit/` y solo
+   `.claude/` (con un `CLAUDE.md` puntero) queda en la raíz. No pisa archivos
+   existentes salvo que pases `--force`.
 2. Detecta el lenguaje y escribe `harness.config.sh` desde el perfil adecuado.
 3. **Lo deja local-only**: añade un bloque gestionado al `.gitignore` del
    proyecto para que su repo no versione el arnés (es parte de tu ecosistema
@@ -90,13 +91,40 @@ Y abre Claude Code y pide: **«implementa la siguiente feature pendiente»**.
 > `generic` con marcadores `TODO:`; el agente `harness_bootstrap` (o tú) los
 > rellena. Ver [`INSTALL.md`](INSTALL.md).
 
+## Actualizar y migrar instalaciones
+
+El arnés evoluciona; estos comandos propagan los cambios a los proyectos donde
+ya lo instalaste, **sin pisar tu trabajo**:
+
+```bash
+./install.sh /ruta/al/proyecto --update   # refresca la maquinaria, preserva tu estado
+./update-all.sh                            # actualiza TODOS los proyectos registrados
+./update-all.sh --list                     # lista instalaciones y su versión
+./update-all.sh --dry-run                  # muestra qué actualizaría, sin tocar
+./update-all.sh --prune                    # quita del registro rutas que ya no existen
+```
+
+- **`--update`** reemplaza la maquinaria (docs/, tools/, agentes, skills,
+  `init.sh`, `settings.json`…) a la última versión, pero **preserva tu estado**:
+  `feature_list.json`, `project-spec.md`, `progress/`, `features/` y
+  `harness.config.sh`. Hace backup de `settings.json` antes de regenerarlo.
+- Cada instalación queda anotada en un **registro local** (`.harness-installs`,
+  ignorado por git) con su ruta y versión; `update-all.sh` lo recorre para
+  actualizarlas todas con un comando.
+- **`--migrate`** convierte una instalación **vieja de layout plano** (con el
+  arnés disperso en la raíz del proyecto) al layout consolidado: hace un backup
+  `.tgz`, mueve tu estado a `harness-kit/`, parcha `harness.config.sh`
+  (`HARNESS_PROJECT_ROOT` + campos del test individual) y limpia la raíz,
+  preservando tus docs propios y `.claude/settings.local.json`.
+
 ## Qué incluye
 
 ```
 craftsman-harness-kit/
 ├── README.md                  # este archivo
 ├── INSTALL.md                 # guía de instalación y adaptación por lenguaje
-├── install.sh                 # instalador: copia + detecta lenguaje + config
+├── install.sh                 # instalador: copia/--update/--migrate + detecta lenguaje
+├── update-all.sh              # actualiza todos los proyectos registrados (--list/--prune)
 ├── harness.config.sh          # ⚙️  config central (comandos por lenguaje)
 ├── init.sh                    # verificación: lee la config, no asume lenguaje
 ├── .gitignore                 # solo para el repo DEL KIT (no se instala);
@@ -107,10 +135,11 @@ craftsman-harness-kit/
 ├── feature_list.json          # alcance: una feature a la vez (plantilla)
 ├── project-spec.md            # spec conversada (plantilla)
 ├── .claude/
-│   ├── settings.json          # hooks de verificación (agnósticos vía wrappers)
-│   └── agents/                # craftsman_lead, spec_partner, gherkin_author,
-│                              #   tdd_craftsman, judge, mutation_tester,
-│                              #   harness_bootstrap
+│   ├── settings.json          # hooks + permisos (deny rules de costo/seguridad)
+│   ├── agents/                # craftsman_lead, spec_partner, gherkin_author,
+│   │                          #   tdd_craftsman, judge, mutation_tester,
+│   │                          #   harness_bootstrap
+│   └── skills/                # transversales: commit-hygiene, branch-pr, progress-log
 ├── docs/
 │   ├── workflow.md            # el pipeline y los insights de cada fase
 │   ├── tdd.md                 # las Tres Leyes del TDD; Rojo-Verde-Refactor
@@ -132,15 +161,15 @@ craftsman-harness-kit/
     └── history.md             # bitácora append-only (plantilla)
 ```
 
-## Los insights del hilo, mapeados
+## Las ideas del hilo, mapeadas
 
 | Paso          | Idea                                                                | Dónde vive               |
 |---------------|---------------------------------------------------------------------|--------------------------|
-| Spec conversada | "I have the AI write the spec by having a conversation… we debate" | `spec_partner`           |
-| Gherkin       | "create a set of .feature files from the project-spec.md"           | `gherkin_author`         |
-| TDD           | "single test followed by code (TDD)" — un test a la vez             | `tdd_craftsman`, `docs/tdd.md` |
-| Review        | "The review step is the whole game. Agents draft, judgment prunes." | `judge`                  |
-| Mutación      | "Mutation testing is resource-heavy, but the ROI… is worth it."     | `mutation_tester`        |
-| Compute-bound | "Raw computer power is the limiting factor" — validar, no teclear   | la mutación reejecuta la suite |
+| Spec conversada | «Hago que la IA escriba la spec a través de una conversación… debatimos» | `spec_partner`      |
+| Gherkin       | «crear un conjunto de archivos .feature a partir del project-spec.md» | `gherkin_author`        |
+| TDD           | «un solo test seguido del código (TDD)» — un test a la vez          | `tdd_craftsman`, `docs/tdd.md` |
+| Review        | «El paso de review es el juego entero. Los agentes redactan, el juicio poda.» | `judge`        |
+| Mutación      | «La prueba de mutación consume muchos recursos, pero el ROI… vale la pena.» | `mutation_tester`  |
+| Cómputo como límite | «El poder de cómputo bruto es el factor limitante» — validar, no teclear | la mutación reejecuta la suite |
 
 Detalle completo en [`docs/workflow.md`](docs/workflow.md).
