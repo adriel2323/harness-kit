@@ -26,7 +26,7 @@
     ]
   },
   "permissions": {
-    "$deny_comment": "directoryDenyList/denyTools NO existen en Claude Code; el mecanismo real es permissions.deny con reglas Tool(patrón-glob). Bloquear dependencias y artefactos generados evita cargarlos al contexto (costo/tokens); bloquear secretos es seguridad. Los hooks (Bash + init.sh) NO usan la tool Read, así que siguen funcionando.",
+    "$deny_comment": "directoryDenyList/denyTools NO existen en Claude Code; el mecanismo real es permissions.deny con reglas Tool(patrón-glob). Bloquear dependencias y artefactos generados evita cargarlos al contexto (costo/tokens); bloquear secretos es seguridad. Los hooks (Bash + init.sh) NO usan la tool Read, así que siguen funcionando. NOTA (verificado empíricamente 2026-06-30): Read(./dir/**) matchea a CUALQUIER profundidad (p. ej. packages/app/dist en un monorepo), el ./ NO ancla a la raíz. Por eso una sola regla ./dir/** basta; NO agregues variantes **/dir/** (son redundantes).",
     "allow": [
       "Bash(./init.sh)",
       "Bash(bash tools/run-tests.sh*)",
@@ -35,14 +35,13 @@
     ],
     "deny": [
       "Read(./node_modules/**)",
-      "Read(**/node_modules/**)",
       "Read(./dist/**)",
       "Read(./build/**)",
       "Read(./.next/**)",
       "Read(./coverage/**)",
       "Read(./target/**)",
       "Read(./vendor/**)",
-      "Read(**/__pycache__/**)",
+      "Read(./__pycache__/**)",
       "Read(./.venv/**)",
       "Read(./venv/**)",
       "Read(./.pytest_cache/**)",
