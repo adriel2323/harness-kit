@@ -20,4 +20,14 @@ case "$CMD" in
 esac
 
 cd "$HARNESS_PROJECT_ROOT_ABS" || exit 1
+
+# Si hay scope de feat, pasarlo como --test-cmd al mutador (mucho más rápido:
+# 1 archivo en vez de la suite completa por mutante). Si no, mutate.py lee
+# $HARNESS_TEST_CMD como hasta hoy (suite completa = safe default).
+SCOPE="${HARNESS_FEAT_SCOPE:-}"
+FEAT_TEST_CMD="${HARNESS_FEAT_TEST_CMD:-}"
+if [ -n "$SCOPE" ] && [ -n "$FEAT_TEST_CMD" ]; then
+  RESOLVED="${FEAT_TEST_CMD//\{scope\}/$SCOPE}"
+  exec bash -c "$CMD \"\$@\" --test-cmd \"$RESOLVED\"" _ "$@"
+fi
 exec bash -c "$CMD \"\$@\"" _ "$@"

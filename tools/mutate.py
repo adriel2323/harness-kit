@@ -9,6 +9,13 @@ Uso:
     python3 tools/mutate.py src/cli.py
     python3 tools/mutate.py src/cli.py --max 80
     python3 tools/mutate.py src/cli.py --test-cmd "python3 -m pytest -q"
+    python3 tools/mutate.py src/cli.py --progress-file progress/.mutation-live.log
+
+--progress-file escribe una línea por mutante A MEDIDA que se evalúa (no al
+final): quien corre esto en background (un subagente, un wrapper de
+opencode) puede quedar sin ver el stdout hasta que el proceso termina, pero
+este archivo se puede leer en cualquier momento sin interferir con la
+corrida (es de solo lectura para quien lo mira).
 
 El comando de tests se resuelve, por orden de prioridad:
     1. --test-cmd "..."
@@ -20,7 +27,11 @@ Diseño (orientado a Python):
   contenido de strings ni comentarios: solo operadores, palabras clave,
   números y sentencias `return`.
 - Descarta los mutantes que no compilan (no inflan la puntuación).
-- Restaura SIEMPRE el archivo original, incluso ante Ctrl-C (bloque `finally`).
+- Restaura SIEMPRE el archivo original, incluso ante Ctrl-C o SIGTERM (bloque
+  `finally`, ver el handler de SIGTERM más abajo). Un SIGKILL sigue sin poder
+  atraparse (limitación del SO, no de este script) — si eso pasa, el archivo
+  puede quedar con un mutante pegado; revisalo antes de asumir que el código
+  está roto de verdad.
 
 Para otros lenguajes, apunta HARNESS_MUTATION_CMD a la herramienta nativa
 (Stryker, cargo-mutants, go-mutesting…). Ver docs/mutation-testing.md.
@@ -31,9 +42,12 @@ import argparse
 import io
 import os
 import shlex
+import signal
 import subprocess
 import sys
 import tokenize
+
+signal.signal(signal.SIGTERM, signal.default_int_handler)
 
 # Mutaciones de operador: token OP -> reemplazo.
 OP_MUTATIONS = {
@@ -146,6 +160,16 @@ def run_tests(test_cmd: list[str]) -> bool:
     return result.returncode == 0
 
 
+def _log(progress_file: str | None, line: str) -> None:
+    """Escribe una línea al archivo de progreso (si se pidió uno) y la
+    flushea de inmediato abriendo/cerrando en cada llamada: así un lector
+    externo (Read, tail) siempre ve el estado real, sin buffers de por medio."""
+    if not progress_file:
+        return
+    with open(progress_file, "a", encoding="utf-8") as f:
+        f.write(line + "\n")
+
+
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description="Prueba de mutación mínima.")
     parser.add_argument("path", help="Archivo de código a mutar.")
@@ -153,9 +177,14 @@ def main(argv: list[str] | None = None) -> int:
                         help="Máximo de mutantes a evaluar (default 100).")
     parser.add_argument("--test-cmd", default=None,
                         help="Comando de tests (default: $HARNESS_TEST_CMD o unittest).")
+    parser.add_argument("--progress-file", default=None,
+                        help="Ruta donde ir logueando cada mutante a medida que se evalúa.")
     args = parser.parse_args(argv)
 
     test_cmd = resolve_test_cmd(args.test_cmd)
+    if args.progress_file:
+        with open(args.progress_file, "w", encoding="utf-8") as f:
+            f.write(f"── arrancando mutación de {args.path} ──\n")
 
     with open(args.path, "r", encoding="utf-8") as f:
         original = f.read()
@@ -178,9 +207,12 @@ def main(argv: list[str] | None = None) -> int:
     killed: list[Mutant] = []
     survived: list[Mutant] = []
 
-    print(f"── Mutando {args.path} ─ {len(valid)} mutantes válidos "
-          f"({skipped_noncompile} descartados por no compilar)")
+    header = (f"── Mutando {args.path} ─ {len(valid)} mutantes válidos "
+              f"({skipped_noncompile} descartados por no compilar)")
+    print(header)
     print(f"   test_cmd: {' '.join(test_cmd)}")
+    _log(args.progress_file, header)
+    _log(args.progress_file, f"   test_cmd: {' '.join(test_cmd)}")
     try:
         for i, m in enumerate(valid, start=1):
             with open(args.path, "w", encoding="utf-8") as f:
@@ -191,10 +223,13 @@ def main(argv: list[str] | None = None) -> int:
             else:
                 killed.append(m)
                 mark = "muerto"
-            print(f"  [{i}/{len(valid)}] {mark:9} {m.describe(args.path)}")
+            line = f"  [{i}/{len(valid)}] {mark:9} {m.describe(args.path)}"
+            print(line)
+            _log(args.progress_file, line)
     finally:
         with open(args.path, "w", encoding="utf-8") as f:
             f.write(original)
+        _log(args.progress_file, "── archivo original restaurado ──")
 
     total = len(valid)
     score = (len(killed) / total * 100) if total else 100.0
@@ -204,6 +239,8 @@ def main(argv: list[str] | None = None) -> int:
     print(f"  killed:   {len(killed)}")
     print(f"  survived: {len(survived)}")
     print(f"  score:    {score:.1f}%")
+    _log(args.progress_file, f"── Resumen: total={total} killed={len(killed)} "
+                              f"survived={len(survived)} score={score:.1f}% ──")
     if truncated:
         print(f"  [WARN] {truncated} mutantes válidos NO evaluados "
               f"(límite --max={args.max}). Sube --max para cobertura total.")

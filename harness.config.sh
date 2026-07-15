@@ -42,6 +42,17 @@ HARNESS_TEST_FILE_PATTERNS=""
 HARNESS_MUTATION_CMD="TODO: comando de mutación"
 HARNESS_MUTATION_THRESHOLD="100"
 
+# --- Scope de feat (loop rápido + mutación) ---------------------------------
+# Lista de test files (separados por espacio) de la feat EN CURSO. Vacío = cae a
+# HARNESS_TEST_CMD (suite completa) como hasta hoy. Lo puebla el tdd_craftsman al
+# empezar la feat; lo consumen mutate.py (vía run-mutation.sh) e init.sh --fast.
+HARNESS_FEAT_SCOPE=""
+# Comando que corre SOLO el scope. {scope} se reemplaza por $HARNESS_FEAT_SCOPE.
+# Si el scope está vacío, los wrappers caen a HARNESS_TEST_CMD (safe default).
+# Ajusta al runner de tu stack (p. ej. 'python3 -m pytest -q {scope}' o
+# 'npx vitest run {scope}'); el downstream Python usa tools/pytest-runner.sh.
+HARNESS_FEAT_TEST_CMD="bash harness-kit/tools/pytest-runner.sh -q {scope}"
+
 # Opcionales: déjalos vacíos si no aplican.
 HARNESS_BUILD_CMD=""
 HARNESS_LINT_CMD=""
