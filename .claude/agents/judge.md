@@ -29,7 +29,9 @@ señalas qué falla, no lo arreglas.
    - ¿Nombres reveladores, sin duplicación, sin números mágicos?
    - ¿Contrato de errores correcto (canal de error + código de retorno)?
    - ¿Respeta `docs/architecture.md` (capas, dependencias)?
-6. Ejecuta `./init.sh`. Tiene que terminar verde.
+6. Ejecuta `./init.sh --fast` (verificación intermedia con scope de feat).
+   Tiene que terminar verde. El gate de suite completa le queda al `Stop`
+   hook / cierre del `craftsman_lead`; tú validas diseño y cobertura.
 7. Recorre `CHECKPOINTS.md`: marca `[x]`/`[ ]`.
 8. Emite veredicto.
 
