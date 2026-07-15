@@ -66,13 +66,41 @@ tools/run-mutation.sh                     # corre la mutación completa
 Si necesitas llamar al script directamente (debug, exploración):
 
 ```bash
-python3 tools/mutate.py src/cli.py                          # mutar un archivo
-python3 tools/mutate.py src/cli.py --max 80                 # acotar nº de mutantes
+python3 tools/mutate.py src/cli.py                          # mutar un archivo (TODOS)
+python3 tools/mutate.py src/cli.py --max 80                 # DEBUG: acota; si trunca → exit 3
 python3 tools/mutate.py src/cli.py --test-cmd "python3 -m pytest -q"
 ```
 
 El script **restaura siempre** el archivo original, incluso si lo
 interrumpes (maneja la limpieza en `finally`).
+
+### `--max` y la honestidad del score (evidencia completa o gate rojo)
+
+Por defecto, `--max` **no tiene tope** (`None`): se evalúan **todos** los
+mutantes válidos del archivo. Es la única forma en que el `score` es honesto,
+porque el score se calcula sobre lo evaluado — si evaluás la mitad del
+universo, un `100%` solo dice que la mitad medida está cubierta, no el todo.
+
+`--max N` existe solo como herramienta de **debug** (acotar una corrida larga
+mientras explorás). Pero si un `--max` explícito **trunca** la lista (deja
+mutantes válidos sin evaluar), la corrida sale con **exit 3** y el resumen dice
+`evaluados X de Y` (también en el `--progress-file`). Exit 3 es **gate rojo**:
+evidencia incompleta no satisface el umbral, por mucho que el score de lo
+medido diera 100%. El score sigue calculándose sobre lo evaluado (no se inventa
+veredicto sobre lo no medido); lo que cambia es que ya no llega verde al gate.
+
+Precedencia de los códigos de salida:
+
+| Exit | Significado                                                        |
+|------|-------------------------------------------------------------------|
+| `0`  | todos los mutantes evaluados y todos muertos → **gate verde**     |
+| `1`  | hay sobrevivientes (no truncado) → agujeros en la red             |
+| `2`  | la suite está roja **sin mutar** → arreglá los tests primero      |
+| `3`  | `--max` truncó → evidencia parcial → **gate rojo**                |
+
+`3` manda sobre `1`: si además de truncar hay sobrevivientes, se reportan
+igual, pero el código de salida es `3` (la evidencia parcial es el problema de
+fondo).
 
 > Para lenguajes que no sean Python, prefiere la herramienta nativa de la
 > tabla de arriba; el catálogo textual de `mutate.py` es un *fallback* y

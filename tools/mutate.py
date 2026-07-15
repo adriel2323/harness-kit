@@ -7,9 +7,16 @@ tests y comprueba si algún test falla (mutante MUERTO) o si todos pasan
 
 Uso:
     python3 tools/mutate.py src/cli.py
-    python3 tools/mutate.py src/cli.py --max 80
+    python3 tools/mutate.py src/cli.py --max 80   # DEBUG: acota; si trunca, exit 3
     python3 tools/mutate.py src/cli.py --test-cmd "python3 -m pytest -q"
     python3 tools/mutate.py src/cli.py --progress-file progress/.mutation-live.log
+
+Códigos de salida:
+    0  todos los mutantes evaluados y todos muertos (gate verde).
+    1  hay sobrevivientes (agujeros en la red de tests).
+    2  la suite está roja SIN mutar (arreglá los tests primero).
+    3  --max truncó la lista → evidencia parcial → gate rojo (aunque el score
+       de lo evaluado diera 100%). Sin --max se evalúan TODOS (default).
 
 --progress-file escribe una línea por mutante A MEDIDA que se evalúa (no al
 final): quien corre esto en background (un subagente, un wrapper de
@@ -173,8 +180,11 @@ def _log(progress_file: str | None, line: str) -> None:
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description="Prueba de mutación mínima.")
     parser.add_argument("path", help="Archivo de código a mutar.")
-    parser.add_argument("--max", type=int, default=100,
-                        help="Máximo de mutantes a evaluar (default 100).")
+    parser.add_argument("--max", type=int, default=None,
+                        help="Tope de mutantes a evaluar (DEBUG). Default: sin "
+                             "tope, se evalúan TODOS. Si un --max explícito deja "
+                             "mutantes sin evaluar, el gate sale ROJO (exit 3): "
+                             "el score sobre evidencia parcial no vale.")
     parser.add_argument("--test-cmd", default=None,
                         help="Comando de tests (default: $HARNESS_TEST_CMD o unittest).")
     parser.add_argument("--progress-file", default=None,
@@ -199,8 +209,13 @@ def main(argv: list[str] | None = None) -> int:
     valid = [m for m in mutants if compiles(m.apply(lines), args.path)]
     skipped_noncompile = len(mutants) - len(valid)
 
+    # Sin --max se evalúan TODOS los mutantes válidos (default None). Un --max
+    # explícito es solo herramienta de debug: si trunca, deja evidencia parcial
+    # y el gate sale rojo (exit 3) más abajo. total_valid guarda el universo
+    # real (Y en "evaluados X de Y").
+    total_valid = len(valid)
     truncated = 0
-    if len(valid) > args.max:
+    if args.max is not None and len(valid) > args.max:
         truncated = len(valid) - args.max
         valid = valid[: args.max]
 
@@ -242,13 +257,26 @@ def main(argv: list[str] | None = None) -> int:
     _log(args.progress_file, f"── Resumen: total={total} killed={len(killed)} "
                               f"survived={len(survived)} score={score:.1f}% ──")
     if truncated:
-        print(f"  [WARN] {truncated} mutantes válidos NO evaluados "
-              f"(límite --max={args.max}). Sube --max para cobertura total.")
+        # Evidencia parcial: se evaluaron X de Y mutantes válidos. El score de
+        # arriba solo cubre lo medido; los no evaluados quedan sin veredicto.
+        # Esto NO es un warning cosmético: es gate rojo (exit 3), porque un
+        # gate que se satisface con parte del universo miente.
+        evaluados = f"evaluados {total} de {total_valid}"
+        msg = (f"  [FAIL] {truncated} mutantes válidos SIN evaluar por "
+               f"--max={args.max} ({evaluados}). Evidencia incompleta: el gate "
+               f"exige cobertura total (corré sin --max).")
+        print(msg)
+        _log(args.progress_file, f"── {evaluados} (truncado por --max={args.max}) "
+                                  f"→ gate rojo (exit 3) ──")
     if survived:
         print("\n  Mutantes sobrevivientes (agujeros en la red):")
         for m in survived:
             print(f"   - {m.describe(args.path)}")
 
+    # Precedencia de exit: truncado (evidencia parcial) manda sobre todo, aunque
+    # además haya sobrevivientes (que igual se reportan arriba).
+    if truncated:
+        return 3
     return 0 if not survived else 1
 
 

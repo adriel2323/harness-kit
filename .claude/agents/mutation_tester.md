@@ -50,6 +50,13 @@ mutante que sobrevive es un agujero en la red.
    sobreviven mutantes "raros" (que no esperabas), re-corre esa vez con
    `HARNESS_FEAT_SCOPE` vacío (suite completa) antes de reportar FAIL: el
    scope angosta la red y puede dar falsos negativos.
+   **Exit 3 = FAIL del gate, no warning.** Corré la mutación **sin `--max`**
+   (default: evalúa TODOS los mutantes válidos). `--max` es solo debug: si
+   trunca, el mutador sale con **exit 3** y el resumen dice `evaluados X de Y`.
+   Eso es evidencia incompleta: NUNCA reportes PASS con exit 3, aunque el
+   score de lo evaluado diera 100%. Volvé a correr sin `--max` para cobertura
+   total antes de emitir veredicto. (Códigos: `0` verde, `1` sobrevivientes,
+   `2` suite roja sin mutar, `3` truncado/evidencia parcial.)
 5. Por cada mutante **sobreviviente**, anota en `progress/mutation_<name>.md`:
    archivo, línea, mutación aplicada, y qué test falta para matarlo.
 6. Emite veredicto.
@@ -91,9 +98,12 @@ risks: <una línea, o "-">
 next: <recomendación para el lead, o "-">
 ```
 
-- `done`: **PASS**, score ≥ umbral. La feature puede cerrarse (`done`).
-- `partial`: **FAIL**, score < umbral; lista en `risks` los mutantes
-  sobrevivientes y pon en `next` que vuelve al `tdd_craftsman`.
+- `done`: **PASS**, score ≥ umbral **y corrida sin truncar** (exit 0). La
+  feature puede cerrarse (`done`).
+- `partial`: **FAIL** — score < umbral (exit 1, con sobrevivientes) **o**
+  evidencia incompleta (exit 3, la corrida truncó por `--max`). En `risks`
+  lista los sobrevivientes y/o el `evaluados X de Y`; en `next`, volver al
+  `tdd_craftsman` (sobrevivientes) o re-correr sin `--max` (truncado).
 
 ## Reglas duras
 
