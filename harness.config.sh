@@ -52,6 +52,17 @@ HARNESS_FEAT_SCOPE=""
 # Ajusta al runner de tu stack (p. ej. 'python3 -m pytest -q {scope}' o
 # 'npx vitest run {scope}'); el downstream Python usa tools/pytest-runner.sh.
 HARNESS_FEAT_TEST_CMD="bash harness-kit/tools/pytest-runner.sh -q {scope}"
+# Comando de tests SOLO para la mutación (lo consume run-mutation.sh). Separado
+# de HARNESS_FEAT_TEST_CMD porque el loop rápido de TDD (init.sh --fast) quiere
+# ver TODOS los fallos, y la mutación solo mira el returncode por mutante: un
+# flag fail-fast (-x en pytest; Stryker/gremlins/PIT traen su propio bail-out)
+# es neutro para el veredicto y mucho más rápido en los mutantes muertos.
+# {scope} se sustituye por HARNESS_FEAT_SCOPE (si está vacío queda la suite
+# completa con fail-fast, que sigue siendo correcto). Vacío = fallback a
+# HARNESS_FEAT_TEST_CMD + scope y después a HARNESS_TEST_CMD (comportamiento
+# previo, sin fail-fast). Como todo comando del arnés: "plano", shlex-parseable,
+# sin operadores de shell. Ej. pytest: "python3 -m pytest -qx {scope}"
+HARNESS_MUTATION_TEST_CMD=""
 
 # Opcionales: déjalos vacíos si no aplican.
 HARNESS_BUILD_CMD=""

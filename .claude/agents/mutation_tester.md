@@ -29,6 +29,11 @@ mutante que sobrevive es un agujero en la red.
    poblado con los test files de la feat (modo simple: scope de feat
    completo). Si está vacío, la mutación corre la suite completa por
    mutante (lento pero correcto).
+   Si `HARNESS_MUTATION_TEST_CMD` está definida en `harness.config.sh`, el
+   wrapper (`run-mutation.sh`) la usa automáticamente en vez de
+   `HARNESS_FEAT_TEST_CMD` (fail-fast, p.ej. `-x` de pytest; ver
+   `docs/mutation-testing.md`). No hace falta que hagas nada extra: solo
+   sabé que existe y que no cambia el veredicto.
 3. Ejecuta la herramienta de mutación sobre cada archivo relevante con el
    wrapper (corre desde la raíz del proyecto y carga el entorno del arnés).
    Pasá `--progress-file <ruta-scratchpad>` para observabilidad en vivo

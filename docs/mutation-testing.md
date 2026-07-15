@@ -78,6 +78,39 @@ interrumpes (maneja la limpieza en `finally`).
 > tabla de arriba; el catálogo textual de `mutate.py` es un *fallback* y
 > puede mutar dentro de strings en sintaxis no-Python.
 
+## `HARNESS_MUTATION_TEST_CMD`: fail-fast solo para la mutación
+
+`HARNESS_MUTATION_TEST_CMD` (en `harness.config.sh`) es un comando de tests
+**exclusivo de `run-mutation.sh`**, separado de `HARNESS_FEAT_TEST_CMD`. La
+razón: `HARNESS_FEAT_TEST_CMD` la comparte el loop rápido de TDD
+(`init.sh --fast`), donde interesa ver **todos** los fallos de una corrida
+para iterar rápido. La mutación, en cambio, solo mira el returncode del
+comando por cada mutante: le da igual si fallan 1 o 50 tests, el veredicto es
+el mismo (muerto = returncode ≠ 0). Por eso ahí un flag "fail-fast" (`-x` en
+pytest) es semánticamente neutro para el veredicto — el mutante muere igual
+con el primer test que falla — y mucho más barato: los mutantes
+**sobrevivientes** (los que importan, porque revelan el agujero) igual pagan
+la suite completa del scope, pero los mutantes muertos ya no esperan al
+último test.
+
+El flag concreto de fail-fast depende de la herramienta del lenguaje (`-x` en
+pytest; Stryker, `gremlins` y PIT traen su propio mecanismo de *bail-out*).
+Por eso vive en config (`harness.config.sh`) y no está hardcodeado en
+`run-mutation.sh` ni en `mutate.py`.
+
+Cadena de fallback en `run-mutation.sh` (de mayor a menor prioridad):
+
+1. `HARNESS_MUTATION_TEST_CMD` (si está definida y no vacía) — con `{scope}`
+   sustituido por `HARNESS_FEAT_SCOPE` (aunque esté vacío: en ese caso corre
+   la suite completa con fail-fast, que sigue siendo correcto).
+2. `HARNESS_FEAT_TEST_CMD` + `HARNESS_FEAT_SCOPE` (comportamiento previo, sin
+   fail-fast).
+3. `HARNESS_TEST_CMD` (lo resuelve `mutate.py` si no se le pasa `--test-cmd`).
+
+Como con el resto de los comandos del arnés, debe ser "plano" y
+shlex-parseable (sin pipes, `&&` ni otros operadores de shell), porque
+`mutate.py` lo parsea con `shlex.split`.
+
 ## El umbral
 
 - Por defecto, la feature exige **`HARNESS_MUTATION_THRESHOLD`% de mutantes
