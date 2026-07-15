@@ -70,11 +70,23 @@ if [ "$is_test_file" = "1" ]; then
   TESTFILE="$FILE"
 else
   # --- 3. Mapear archivo FUENTE -> su archivo de test ------------------------
-  for tmpl in ${HARNESS_TEST_FILE_PATTERNS:-}; do
-    cand="${tmpl//\{name\}/$name}"
-    cand="${cand//\{dir\}/$dir}"
-    if [ -f "$cand" ]; then TESTFILE="$cand"; break; fi
-  done
+  # 3a. Mapa declarado (cabecera `covers:`): si el fuente editado tiene tests
+  # que lo declaran, esos mandan (scoping durable, sobrevive al cierre de la
+  # feat). test-map.sh puede devolver VARIOS test files separados por espacio;
+  # se sustituyen TODOS en {file} de HARNESS_TEST_ONE_CMD (pytest y la mayoría
+  # de runners aceptan lista de archivos). run-tests.sh hace la sustitución tal
+  # cual, así que basta pasarlos como un único string con espacios.
+  MAPPED="$(bash "$HARNESS_KIT_DIR/tools/test-map.sh" "$FILE" 2>/dev/null || true)"
+  if [ -n "$MAPPED" ]; then
+    TESTFILE="$MAPPED"
+  else
+    # 3b. Convención por nombre (EXACTAMENTE como hoy si el mapa está vacío).
+    for tmpl in ${HARNESS_TEST_FILE_PATTERNS:-}; do
+      cand="${tmpl//\{name\}/$name}"
+      cand="${cand//\{dir\}/$dir}"
+      if [ -f "$cand" ]; then TESTFILE="$cand"; break; fi
+    done
+  fi
 fi
 
 # 4. Sin test mapeado -> suite completa (no perdemos seguridad).

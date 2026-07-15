@@ -21,10 +21,22 @@ esac
 
 cd "$HARNESS_PROJECT_ROOT_ABS" || exit 1
 
+# Mapa declarado módulo→tests (cabecera `covers:`). Si el archivo a mutar ($1)
+# tiene tests que lo declaran, esos son el scope efectivo (scoping durable:
+# sobrevive al cierre de la feat, no depende de HARNESS_FEAT_SCOPE). Guard: solo
+# consultamos el mapa si $1 existe y es un archivo. Con mapa vacío (situación
+# actual: ningún test tiene cabecera todavía) el scope efectivo cae a
+# HARNESS_FEAT_SCOPE y el comportamiento es byte-idéntico al de antes.
+MAPPED=""
+if [ -n "${1:-}" ] && [ -f "$1" ]; then
+  MAPPED="$(bash "$HARNESS_KIT_DIR/tools/test-map.sh" "$1" 2>/dev/null || true)"
+fi
+
 # Si hay scope de feat, pasarlo como --test-cmd al mutador (mucho más rápido:
 # 1 archivo en vez de la suite completa por mutante). Si no, mutate.py lee
 # $HARNESS_TEST_CMD como hasta hoy (suite completa = safe default).
-SCOPE="${HARNESS_FEAT_SCOPE:-}"
+# Scope efectivo: el mapa si no está vacío; si no, HARNESS_FEAT_SCOPE (como hoy).
+SCOPE="${MAPPED:-${HARNESS_FEAT_SCOPE:-}}"
 FEAT_TEST_CMD="${HARNESS_FEAT_TEST_CMD:-}"
 MUTATION_TEST_CMD="${HARNESS_MUTATION_TEST_CMD:-}"
 

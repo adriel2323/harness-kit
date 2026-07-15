@@ -47,9 +47,14 @@ mutante que sobrevive es un agujero en la red.
 4. **Umbral**: la puntuación de mutación de la feature DEBE ser
    ≥ `HARNESS_MUTATION_THRESHOLD` (por defecto **100% sobre las líneas
    nuevas/tocadas**; ver excepciones en `docs/mutation-testing.md`). Si
-   sobreviven mutantes "raros" (que no esperabas), re-corre esa vez con
-   `HARNESS_FEAT_SCOPE` vacío (suite completa) antes de reportar FAIL: el
-   scope angosta la red y puede dar falsos negativos.
+   sobreviven mutantes "raros" (que no esperabas), **escalá la red antes de
+   reportar FAIL** — un scope angosto puede dar falsos negativos. El scope
+   efectivo va de más angosto a más ancho: `covers(archivo)` (el mapa
+   declarado que resuelve `tools/test-map.sh`) → `HARNESS_FEAT_SCOPE` → suite
+   completa (`HARNESS_FEAT_SCOPE` vacío). `run-mutation.sh` ya prefiere el mapa
+   `covers:` sobre el scope de feat automáticamente; para forzar la suite
+   completa, vaciá `HARNESS_FEAT_SCOPE` y asegurate de que el archivo no tenga
+   tests que lo declaren, o re-corré esa vez con la suite entera.
    **Exit 3 = FAIL del gate, no warning.** Corré la mutación **sin `--max`**
    (default: evalúa TODOS los mutantes válidos). `--max` es solo debug: si
    trunca, el mutador sale con **exit 3** y el resumen dice `evaluados X de Y`.

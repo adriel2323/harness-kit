@@ -61,6 +61,14 @@ Si la feature es un refactor (SOLID, desacoplar, reestructurar), lee
    `HARNESS_TEST_FILE_PATTERNS`, p. ej. `tests/test_<name>.py`). Vacío =
    suite completa por corrida (lento); poblado = loop rápido. **Vacúalo al
    cerrar la feat** (lifecycle).
+   **Cabecera `covers:` (mapa durable módulo→tests).** Todo archivo de test
+   **nuevo** nace con una cabecera en sus primeras líneas que declara qué
+   fuentes cubre: `# covers: <rutas fuente separadas por espacio>` (p. ej.
+   `# covers: responder/panel.py responder/db.py`). Si tocás un test
+   **existente** que no la tiene, agregásela. `HARNESS_FEAT_SCOPE` es efímero
+   (lo vaciás al cerrar la feat); la cabecera `covers:` es lo que deja un mapa
+   **durable** para que la mutación y el loop de tests sigan scopeando
+   correctamente **después** de cerrada la feat (la lee `tools/test-map.sh`).
 3. **Por cada escenario `@s` en orden**, ejecuta uno o más ciclos
    Rojo-Verde-Refactor:
    a. **ROJO** — escribe un test que codifica ese Given/When/Then y

@@ -29,6 +29,13 @@ señalas qué falla, no lo arreglas.
    - ¿Nombres reveladores, sin duplicación, sin números mágicos?
    - ¿Contrato de errores correcto (canal de error + código de retorno)?
    - ¿Respeta `docs/architecture.md` (capas, dependencias)?
+   - **Cabecera `covers:` plausible**: los test files de la feature declaran
+     una cabecera `covers:` en sus primeras líneas y los fuentes listados
+     **existen** y son los que la feature realmente tocó (ni de más ni de
+     menos). Señales de alarma: una cabecera con **5+ módulos** es *smell* de
+     módulo dios (¿por qué un test cubre medio sistema?); **imports cruzados
+     nuevos** entre módulos que antes no se conocían exigen justificación
+     explícita contra `docs/architecture.md` (capas/dependencias permitidas).
 6. Ejecuta `./init.sh --fast` (verificación intermedia con scope de feat).
    Tiene que terminar verde. El gate de suite completa le queda al `Stop`
    hook / cierre del `craftsman_lead`; tú validas diseño y cobertura.
