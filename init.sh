@@ -15,6 +15,11 @@ EXIT_CODE=0
 HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 cd "$HERE" || exit 1
 
+# --fast: verificación intermedia con scope de feat (NO es gate de producción).
+# Sin el flag (caso del Stop hook), corre la suite completa como siempre.
+FAST=0
+[ "${1:-}" = "--fast" ] && FAST=1
+
 echo "── 1. Cargando configuración del arnés ────────────────"
 
 if [ ! -f "harness.config.sh" ]; then
@@ -155,11 +160,25 @@ fi
 echo ""
 echo "── 6. Ejecutando tests ─────────────────────────────────"
 # Los tests corren en la raíz del proyecto (donde viven src/ y tests/).
-if ( cd "$PROJECT_ROOT_ABS" && eval "$HARNESS_TEST_CMD" ) 2>&1; then
-  ok "Todos los tests pasan"
+# --fast + scope de feat  → solo el scope (verificación intermedia).
+# --fast sin scope        → avisa y omite (no FAIL: es verificación intermedia).
+# sin flag (Stop hook)    → suite completa = gate de producción (sin cambios).
+if [ "$FAST" = "1" ] && [ -n "${HARNESS_FEAT_SCOPE:-}" ]; then
+  CMD="${HARNESS_FEAT_TEST_CMD//\{scope\}/$HARNESS_FEAT_SCOPE}"
+  if ( cd "$PROJECT_ROOT_ABS" && eval "$CMD" ) 2>&1; then
+    ok "Tests del scope de feat pasan (--fast)"
+  else
+    fail "Tests del scope fallaron (--fast)"; EXIT_CODE=1
+  fi
+elif [ "$FAST" = "1" ]; then
+  warn "--fast sin HARNESS_FEAT_SCOPE: paso de tests omitido (verificación intermedia)"
 else
-  fail "Hay tests rotos (o el comando de tests falló)"
-  EXIT_CODE=1
+  if ( cd "$PROJECT_ROOT_ABS" && eval "$HARNESS_TEST_CMD" ) 2>&1; then
+    ok "Todos los tests pasan"
+  else
+    fail "Hay tests rotos (o el comando de tests falló)"
+    EXIT_CODE=1
+  fi
 fi
 
 echo ""

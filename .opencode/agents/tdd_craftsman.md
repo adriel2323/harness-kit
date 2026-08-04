@@ -43,12 +43,18 @@ REFACTOR → limpia con la barra verde: nombres, duplicación, funciones cortas
    `docs/architecture.md`, `docs/conventions.md`, la sección de
    `project-spec.md` y el `.feature`.
 2. Anota en `progress/current.md`: `Feature en curso: <id> — <name>` y la
-   lista de escenarios `@s1..@sn` que vas a recorrer.
+   lista de escenarios `@s1..@sn` que vas a recorrer. **Puebla
+   `HARNESS_FEAT_SCOPE`** en `harness.config.sh` con los test files que vas a
+   tocar (derívalos del `.feature` + la convención de nombres de
+   `HARNESS_TEST_FILE_PATTERNS`, p. ej. `tests/test_<name>.py`). Vacío =
+   suite completa por corrida (lento); poblado = loop rápido. **Vacúalo al
+   cerrar la feat** (lifecycle).
 3. **Por cada escenario `@s` en orden**, ejecuta uno o más ciclos
    Rojo-Verde-Refactor:
    a. **ROJO** — escribe un test que codifica ese Given/When/Then y
-      verifica que **falla** (corre `HARNESS_TEST_CMD`). Un test que pasa a
-      la primera no demuestra nada: ajústalo o sospecha.
+      verifica que **falla**. En el loop usá `HARNESS_FEAT_TEST_CMD` (solo
+      el scope de la feat, rápido); un test que pasa a la primera no
+      demuestra nada: ajústalo o sospecha.
    b. **VERDE** — la mínima implementación que lo pone verde.
    c. **REFACTOR** — con la barra verde, elimina duplicación y mejora
       nombres. Vuelve a correr los tests tras cada cambio.
@@ -56,7 +62,10 @@ REFACTOR → limpia con la barra verde: nombres, duplicación, funciones cortas
       qué cambio mínimo).
 4. **Trazabilidad**: cada escenario `@s` debe quedar cubierto por al menos
    un test concreto. Escribe el mapa `@s → test` en `progress/tdd_<name>.md`.
-5. Ejecuta `./init.sh`. Verde de punta a punta.
+5. Ejecuta `./init.sh` **sin flag** (suite completa = gate de la feat).
+   Durante el ciclo pudiste usar `./init.sh --fast` para verificación
+   intermedia; este paso final es el gate real, no `--fast`. Verde de punta
+   a punta.
 6. **No marques `done` tú mismo y no esperes a cerrar.** El cierre (flip de
    `status: done` + mover el resumen a `progress/history.md`) lo hace el
    `craftsman_lead` tras verificar `judge=done` **y** `mutation_tester=done`

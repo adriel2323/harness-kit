@@ -68,3 +68,27 @@ nuevo o se justifica como equivalente en `progress/mutation_<name>.md`.
 Si `./init.sh` está rojo o sobreviven mutantes sin justificar, **no**
 marques nada como `done`. Anota el bloqueo en `progress/current.md` con
 estado `blocked` en `feature_list.json`.
+
+## Modelo de 2 gates (desarrollo vs producción)
+
+> Separar el gate de **desarrollo** (rápido, scope de la feat) del gate de
+> **producción** (suite completa, una sola vez al cerrar). No reduce
+> cobertura: la suite completa sigue corriendo donde importa (cierre).
+> Reduce redundancia: hoy corremos toda la suite para validar un cambio en
+> un módulo, decenas de veces.
+
+| Gate | Comando | Cuándo | Qué valida |
+|------|---------|--------|------------|
+| **Desarrollo** | `./init.sh --fast` | Durante TDD (loop) y review del `judge` | Solo el scope de la feat (`HARNESS_FEAT_SCOPE`). Verificación intermedia. **No** habilita declarar `done`. |
+| **Producción** | `./init.sh` (sin flag) | Cierre de sesión (`Stop` hook) y antes de `done`/PR | Suite completa (`HARNESS_TEST_CMD`). Único gate que valida integración completa. |
+
+- `HARNESS_FEAT_SCOPE` vacío → **todo** cae a la suite completa (cero
+  regresión: si no se pobla el scope, el comportamiento es idéntico al
+  anterior). `init.sh --fast` con scope vacío avisa y omite el paso de
+  tests (no FAIL).
+- Lo puebla el `tdd_craftsman` al empezar la feat (de los test files que
+  tocará) y lo vacía al cerrarla. El `mutation_tester` lo consume para
+  correr mutación solo contra el scope (80-90% del tiempo de mutación).
+- Umbral de mutación sigue 100%. Las Tres Leyes del TDD no se relajan.
+- El `craftsman_lead` **no** flipea `done` con `--fast` solo: el gate de
+  producción (suite completa verde) es obligatorio.

@@ -31,7 +31,7 @@
 
 | Archivo / carpeta            | Qué contiene                                                                | Cuándo leerlo |
 |------------------------------|-----------------------------------------------------------------------------|---------------|
-| `harness.config.sh`          | Comandos por lenguaje (test, mutación, build, lint, runtime)                | Siempre, al empezar |
+| `harness.config.sh`          | Comandos por lenguaje (test, mutación, build, lint, runtime) + scope de feat (`HARNESS_FEAT_SCOPE`/`HARNESS_FEAT_TEST_CMD`) | Siempre, al empezar |
 | `feature_list.json`          | Lista de tareas con estado (`pending` / `spec_ready` / `in_progress` / `done` / `blocked`) | Siempre, al empezar |
 | `progress/current.md`        | Estado de la sesión actual                                                  | Siempre, al empezar |
 | `progress/history.md`        | Bitácora append-only de sesiones anteriores                                 | Si necesitas contexto histórico |
@@ -44,7 +44,7 @@
 | `docs/refactoring.md`        | Cómo llevar un refactor/SOLID/desacople por el flujo (caracterización)      | Antes de tocar una feature `[REFACTOR]` |
 | `docs/architecture.md`       | Qué significa "hacer un buen trabajo" en este proyecto                      | Antes de implementar |
 | `docs/conventions.md`        | Reglas de estilo, nombres, estructura                                       | Antes de escribir código |
-| `docs/verification.md`       | Cómo verificar que tu trabajo funciona                                      | Antes de declarar `done` |
+| `docs/verification.md`       | Cómo verificar que tu trabajo funciona + modelo de 2 gates (`--fast` vs suite completa) | Antes de declarar `done` |
 | `CHECKPOINTS.md`             | Criterios objetivos de "estado final correcto"                              | Para auto-evaluarte |
 | `tools/mutate.py`            | Mutador sin dependencias (Python; fallback genérico)                        | Fase de mutación |
 | `tools/run-tests.sh`         | Wrapper agnóstico: corre la suite (`--one <file>` para un solo test)         | Para verificar |
