@@ -124,7 +124,36 @@ else
 fi
 
 echo ""
-echo "── 5. Ejecutando tests ─────────────────────────────────"
+echo "── 5. Verificando perfil de modelos (model-map.yaml) ──"
+if [ -f "model-map.yaml" ] && command -v python3 >/dev/null 2>&1; then
+  PROFILE=$(python3 -c "import yaml;print(yaml.safe_load(open('model-map.yaml'))['active_profile'])" 2>/dev/null || echo "")
+  if [ -n "$PROFILE" ]; then
+    ok "Perfil activo: $PROFILE"
+    if [ "$PROFILE" = "opencode_go" ]; then
+      if command -v opencode >/dev/null 2>&1; then
+        ok "opencode CLI disponible"
+        # Verificar que los modelos referenciados existen.
+        if python3 tools/resolve-model.py gherkin_author --field model >/dev/null 2>&1; then
+          MODELS_OK=1
+          for fase in gherkin_author tdd_craftsman mutation_tester harness_bootstrap; do
+            M=$(python3 tools/resolve-model.py "$fase" --field model 2>/dev/null || echo "")
+            if [ -z "$M" ]; then fail "No se resolvió modelo para fase '$fase'"; EXIT_CODE=1; MODELS_OK=0; fi
+          done
+          if [ "$MODELS_OK" = "1" ]; then ok "Modelos por fase resueltos vía resolve-model.py"; fi
+        else
+          warn "tools/resolve-model.py no corre (¿PyYAML?); el craftsman_lead caerá a fallback"
+        fi
+      else
+        warn "active_profile=opencode_go pero 'opencode' no está en PATH; las fases híbridas fallarán"
+      fi
+    fi
+  else
+    warn "No se pudo leer active_profile de model-map.yaml"
+  fi
+fi
+
+echo ""
+echo "── 6. Ejecutando tests ─────────────────────────────────"
 # Los tests corren en la raíz del proyecto (donde viven src/ y tests/).
 if ( cd "$PROJECT_ROOT_ABS" && eval "$HARNESS_TEST_CMD" ) 2>&1; then
   ok "Todos los tests pasan"
@@ -134,7 +163,7 @@ else
 fi
 
 echo ""
-echo "── 6. Resumen ──────────────────────────────────────────"
+echo "── 7. Resumen ──────────────────────────────────────────"
 if [ $EXIT_CODE -eq 0 ]; then
   ok "Entorno listo. Puedes empezar a trabajar."
 else

@@ -1,6 +1,6 @@
 ---
 description: Valida que los tests muerden. Corre la mutación sobre el código de la feature y exige puntuación >= umbral. No edita código.
-mode: subagent
+mode: primary
 model: opencode-go/deepseek-v4-flash
 permission:
   edit: deny

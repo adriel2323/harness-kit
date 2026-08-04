@@ -1,6 +1,6 @@
 ---
 description: Implementa UNA feature por TDD estricto (un test a la vez, Rojo → Verde → Refactor) guiado por su .feature aprobado. Escribe código y tests.
-mode: subagent
+mode: primary
 model: opencode-go/deepseek-v4-pro
 permission:
   edit: allow

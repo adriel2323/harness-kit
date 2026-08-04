@@ -178,10 +178,12 @@ SEED_FORCE=$FORCE
 # ── 1a. MAQUINARIA del arnés → harness-kit/ (se actualiza) ──────────────
 KIT_MACHINERY=(
   "CLAUDE.md" "AGENTS.md" "CHECKPOINTS.md" "QUICKSTART.md" "init.sh"
+  "model-map.yaml" "docs/model-fit.md"
   "docs/workflow.md" "docs/tdd.md" "docs/gherkin.md" "docs/mutation-testing.md"
   "docs/architecture.md" "docs/conventions.md" "docs/verification.md" "docs/refactoring.md"
   "tools/run-tests.sh" "tools/test-affected.sh" "tools/run-mutation.sh"
-  "tools/harness-env.sh" "tools/mutate.py"
+  "tools/harness-env.sh" "tools/mutate.py" "tools/run-opencode.sh"
+  "tools/resolve-model.py"
 )
 
 # ── 1a'. ESTADO del usuario → harness-kit/ (se PRESERVA en --update) ────
@@ -195,6 +197,15 @@ KIT_SEED=(
 AGENT_FILES=(
   "craftsman_lead.md" "spec_partner.md" "gherkin_author.md" "tdd_craftsman.md"
   "judge.md" "mutation_tester.md" "harness_bootstrap.md"
+)
+
+# ── 1b''. Subagentes opencode Go → harness-kit/.opencode/agents/ (maquinaria)
+# Solo las fases que el perfil opencode_go delega a opencode (ver model-map.yaml
+# y craftsman_lead.md). spec_partner/judge/craftsman_lead corren vía Claude
+# Agent(), no necesitan definición opencode. opencode lee .opencode/agents/
+# desde el cwd; run-opencode.sh hace cd a harness-kit/, por eso viven ahí.
+OPENCODE_AGENT_FILES=(
+  "gherkin_author.md" "tdd_craftsman.md" "mutation_tester.md" "harness_bootstrap.md"
 )
 
 # ── 1b'. Skills transversales → .claude/skills/ (maquinaria) ────────────
@@ -220,6 +231,10 @@ for a in "${AGENT_FILES[@]}"; do
 done
 for s in "${SKILL_FILES[@]}"; do
   copy_one "$KIT_DIR/.claude/skills/$s" "$CLAUDE_DST/skills/$s" "$MACH_FORCE"
+  case $? in 0) copied=$((copied+1)) ;; 2) skipped=$((skipped+1)) ;; esac
+done
+for a in "${OPENCODE_AGENT_FILES[@]}"; do
+  copy_one "$KIT_DIR/.opencode/agents/$a" "$KIT_DST/.opencode/agents/$a" "$MACH_FORCE"
   case $? in 0) copied=$((copied+1)) ;; 2) skipped=$((skipped+1)) ;; esac
 done
 # Estado del usuario: en --update se preserva (force=SEED_FORCE, no forzado).
@@ -333,6 +348,7 @@ build_ignore_block() {
   echo "/.claude/CLAUDE.md"
   for a in "${AGENT_FILES[@]}"; do echo "/.claude/agents/$a"; done
   for s in "${SKILL_FILES[@]}"; do echo "/.claude/skills/$s"; done
+  for a in "${OPENCODE_AGENT_FILES[@]}"; do echo "/$KIT_SUBDIR/.opencode/agents/$a"; done
   echo "$GI_END"
 }
 

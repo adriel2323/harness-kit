@@ -1,6 +1,6 @@
 ---
 description: Destila project-spec.md en archivos .feature (Gherkin). El contrato ejecutable que el humano aprueba antes del TDD. No escribe código ni tests.
-mode: subagent
+mode: primary
 model: opencode-go/glm-5.2
 permission:
   edit: allow

@@ -30,31 +30,31 @@ deja que la disciplina (TDD + juicio + mutación) la talle.
 
 Cada fase corre en el modelo que le toca, no todas en Opus.
 La fuente de verdad es `model-map.yaml` (única para Claude Code y opencode).
+La resuelve `tools/resolve-model.py` — no la deduzcas tú a mano.
 
 **Cómo resolver (1× por sesión, cacheado):**
 
-1. Lee `active_profile` y `profiles.<perfil>.tiers` de `model-map.yaml`.
-2. Para cada fase, mira su tier en `phase_tiers` y traduce
-   `tier → tiers.<tier>.agent_model`.
-3. **Modo de invocación** — según `active_profile`:
-   - Si `active_profile == "anthropic"` → todas las fases vía `Agent(model=...)`
-   - Si `active_profile == "opencode_go"` → modo híbrido (ver abajo)
+1. Lee `active_profile` de `model-map.yaml`.
+2. Para cada fase, consulta `tools/resolve-model.py <fase> --field all`, que
+   devuelve `fase|perfil|tier|channel|modelo|fuente`:
+   - `channel` = `agent` → la fase va por `Agent(model=…)` de Claude Code.
+   - `channel` = `opencode` → la fase va por `bash tools/run-opencode.sh …`.
+3. **`spec_partner` y `judge` SIEMPRE `channel=agent`** (Claude Opus) en ambos
+   perfiles. Son los gates de calidad donde la composición importa; abaratarlos
+   contamina todo el flujo aguas abajo. El wrapper rechaza lanzarlas.
 
 **Mapa de invocación por perfil:**
 
 | Fase | anthropic | opencode_go |
 |------|-----------|-------------|
-| `spec_partner`   | `Agent(model="opus")`     | `Agent(model="opus")` — siempre Claude |
-| `gherkin_author` | `Agent(model="sonnet")`   | `tools/run-opencode.sh` → GLM-5.2 |
-| `tdd_craftsman`  | `Agent(model="sonnet")`   | `tools/run-opencode.sh` → DeepSeek V4 Pro |
-| `judge`          | `Agent(model="opus")`     | `Agent(model="opus")` — siempre Claude |
-| `mutation_tester`| `Agent(model="haiku")`    | `tools/run-opencode.sh` → DeepSeek V4 Flash |
-| bootstrap        | `Agent(model="haiku")`    | `tools/run-opencode.sh` → DeepSeek V4 Flash |
-| cierre           | Lo haces tú (R1)             | Lo haces tú (R1) |
-
-**spec_partner y judge siempre en Claude Opus**, independientemente del perfil.
-Son los gates de calidad donde la composición importa; abaratarlos contamina
-todo el flujo aguas abajo.
+| `spec_partner`   | `Agent(model="opus")`  | `Agent(model="opus")` — siempre Claude |
+| `gherkin_author` | `Agent(model="sonnet")`| `tools/run-opencode.sh gherkin_author <prompt>` → GLM-5.2 |
+| `tdd_craftsman`  | `Agent(model="sonnet")`| `tools/run-opencode.sh tdd_craftsman <prompt>` → DeepSeek V4 Pro |
+| `judge`          | `Agent(model="opus")`  | `Agent(model="opus")` — siempre Claude |
+| `mutation_tester`| `Agent(model="haiku")` | `tools/run-opencode.sh mutation_tester <prompt>` → DeepSeek V4 Flash |
+| `harness_bootstrap` | `Agent(model="haiku")` | `tools/run-opencode.sh harness_bootstrap <prompt>` → DeepSeek V4 Flash |
+| cierre           | Lo haces tú (R1)       | Lo haces tú (R1) |
+| `Explore`        | `explore` (Haiku)      | `opencode run --agent explore --model opencode-go/deepseek-v4-flash --auto` |
 
 **Cómo aplicar modo anthropic:** en cada llamada a `Agent`, pasa `model:`.
 Ej.: `Agent(subagent_type="judge", model="opus", …)`.
@@ -63,33 +63,75 @@ Ej.: `Agent(subagent_type="judge", model="opus", …)`.
 
 1. `spec_partner` y `judge`: igual que anthropic → `Agent(model="opus")`.
 2. `gherkin_author`, `tdd_craftsman`, `mutation_tester`, `harness_bootstrap`:
-   shell-out a opencode vía el wrapper:
+   shell-out a opencode. El wrapper resuelve el modelo desde `model-map.yaml`
+   (NO lo pases tú; salvo degradación, ver abajo). Pero el **prompt de la tarea
+   es obligatorio**: escríbelo en un archivo de disco y pásalo como 2º arg
+   (regla anti-teléfono-descompuesto — el contenido vive en disco y se
+   versiona):
    ```
-   bash tools/run-opencode.sh gherkin_author
-   bash tools/run-opencode.sh tdd_craftsman
-   bash tools/run-opencode.sh mutation_tester
+   bash tools/run-opencode.sh gherkin_author  progress/_prompt_gherkin_<name>.md
+   bash tools/run-opencode.sh tdd_craftsman   progress/_prompt_tdd_<name>.md
+   bash tools/run-opencode.sh mutation_tester progress/_prompt_mutation_<name>.md
    ```
-   El wrapper devuelve el contrato de 4 campos igual que `Agent()`.
-   Aplica el mismo gatekeeper (validar `status`/`artifact`/`risks`/`next`).
+   El prompt-file debe contener: feature id, rutas al `.feature`/`project-spec.md`,
+   sección relevante de contexto, y el recordatorio de devolver el contrato de
+   4 campos (`status`/`artifact`/`risks`/`next`). Borra el `_prompt_*.md` al
+   cerrar la sesión (lifecycle §5).
+3. El wrapper devuelve el contrato de 4 campos a **stdout** (la traza
+   `fase → modelo resuelto` va a stderr). Aplica el mismo gatekeeper que a
+   `Agent()` (validar `status`/`artifact`/`risks`/`next`).
+4. **`Explore`** en `opencode_go`: no hay agente propio en `.opencode/agents/`;
+   usa el built-in:
+   `opencode run --agent explore --model opencode-go/deepseek-v4-flash --auto "<consulta>"`.
+   En `anthropic`: el subagente nativo `explore` (Haiku).
+
+**Prompt en frío cero (obligatorio al delegar a opencode Go).** Antes de lanzar
+`run-opencode.sh <fase> <prompt>`, hacé la investigación **vos mismo** y que el
+prompt-file le entregue al agente delegado todo lo que ya sabés, para que no
+gaste 33 de 35 min redescubriéndolo (caso real de `mutation_tester`, sesión
+2026-07-02):
+
+1. **El contrato de salida citado textual** (las 4 líneas `status`/`artifact`/
+   `risks`/`next`), no "leé `.claude/agents/X.md`".
+2. **Los comando(s) exacto(s) a correr**, con todos los flags resueltos (rutas,
+   `--max`, `--test-cmd`, `--progress-file`, `HARNESS_FEAT_SCOPE`) — probados en
+   seco por vos (p. ej. contá mutantes candidatos con `generate_mutants()` antes
+   de lanzar, no dejes que el agente lo calcule).
+3. **La plantilla del reporte final ya dada** (encabezados), no "mirá reportes
+   anteriores para el estilo".
+4. **Los hallazgos previos relevantes resumidos en texto** (p. ej. puntos
+   débiles que señaló `judge`), no "leé el veredicto del judge".
+5. **Confirmación explícita de baseline verde** (con el número exacto de tests)
+   para que el agente no lo re-verifique por las dudas.
+
+No elimina toda exploración (el agente igual puede necesitar leer el fuente
+que muta), solo saca del camino lo que el orquestador ya sabe y puede decir.
 
 **Overrides por fase (phase_overrides en model-map.yaml):**
 Cuando `active_profile == "opencode_go"`, ciertas fases usan un modelo concreto
-distinto al que les tocaria por tier. Por ejemplo, `gherkin_author` usa GLM-5.2
-en vez de DeepSeek V4 Pro (que es el `standard` de Go). Los overrides están
-definidos en `model-map.yaml` y se resuelven automáticamente: si una fase tiene
-override, `tools/run-opencode.sh` recibe el modelo override.
+distinto al que les tocaría por tier (p. ej. `gherkin_author` → GLM-5.2 en vez
+de DeepSeek V4 Pro, que es el `standard` de Go). El wrapper los aplica
+**automáticamente** vía `resolve-model.py`; tú no pasas `--model`. Cambiar el
+modelo de una fase = editar `model-map.yaml` (única fuente de verdad); el
+frontmatter del agente queda como fallback si el wrapper omitiera `--model`.
 
 **Degradación (no fallar en silencio):** si el modelo asignado no está
-disponible, baja al siguiente tier según `degrade` (`deep→standard→cheap`),
-úsalo, y **regístralo** en tu mensaje y en el `progress/` de la fase.
+disponible (el wrapper devuelve `status: blocked` con el error real de opencode
+en `risks`), baja al siguiente tier según `degrade` (`deep→standard→cheap`) y
+re-lanza **una vez** pasando el modelo de degradación como 3.er arg:
+`bash tools/run-opencode.sh <fase> <prompt> opencode-go/<modelo-menos-caro>`.
+**Regístralo** en tu mensaje y en el `progress/` de la fase. Si vuelve a fallar,
+paras y reportas.
 
-**Traza para el banco A/B:** al lanzar cada fase, deja en el log la línea
-`fase → modelo resuelto` (y la degradación si la hubo). Es la columna "Modelo
-resuelto" de `docs/model-fit.md` §5/§7.
+**Traza para el banco A/B:** el wrapper ya imprime a stderr
+`[run-opencode] <fase> → <modelo> (override|tier|degrade)`. Es la columna
+"Modelo resuelto" de `docs/model-fit.md` §5/§7. Recógela al lanzar cada fase.
 
 **Excepción a pedido:** si el humano pide explícitamente más capacidad para una
-feature difícil, puedes subir `tdd_craftsman` a `deep` (opus) esa vez; déjalo
-registrado. No hay tier `max`/`fable` por defecto.
+feature difícil, puedes subir `tdd_craftsman` a `deep` (opus) esa vez: en
+`anthropic`, `Agent(model="opus")`; en `opencode_go`, fuerza
+`Agent(model="opus")` (aunque tdd sea `channel=opencode` por defecto, esta
+excepción la corre Claude). Déjalo registrado. No hay tier `max`/`fable`.
 
 ## El pipeline (obligatorio)
 

@@ -33,6 +33,16 @@ profiles:
       cheap:    { agent_model: opencode-go/deepseek-v4-flash,      id: deepseek-v4-flash }
     degrade: [deep, standard, cheap]
 
+  opencode_go_only:
+    # Suscripción OpenCode Go ($10/mes). agent_model usa formato provider/model
+    # que acepta `opencode run --model`. Los IDs exactos están en docs.go.
+    # spec_partner y judge NO tienen modelo Go: caen a Claude vía Agent().
+    tiers:
+      deep:     { agent_model: opencode-go/glm-5.2,           id: glm-5.2 }
+      standard: { agent_model: opencode-go/deepseek-v4-pro,        id: deepseek-v4-pro }
+      cheap:    { agent_model: opencode-go/deepseek-v4-flash,      id: deepseek-v4-flash }
+    degrade: [deep, standard, cheap]
+
 # fase → tier semántico. NO se toca al cambiar de proveedor.
 # Justificación por fila en docs/model-fit.md §3.
 phase_tiers:

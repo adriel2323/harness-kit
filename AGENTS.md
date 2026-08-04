@@ -50,7 +50,7 @@
 | `tools/run-tests.sh`         | Wrapper agnóstico: corre la suite (`--one <file>` para un solo test)         | Para verificar |
 | `tools/test-affected.sh`     | Hook PostToolUse: corre solo el test del archivo editado (loop rápido)       | Automático tras Edit/Write |
 | `tools/run-mutation.sh`      | Wrapper: corre la mutación desde la raíz del proyecto, con el entorno cargado | Fase de mutación |
-| `.opencode/agents/`         | Subagentes opencode Go (`gherkin_author`, `tdd_craftsman`, `mutation_tester`) — para el perfil híbrido | Si `active_profile` == `opencode_go` |
+| `.opencode/agents/`         | Subagentes opencode Go (`gherkin_author`, `tdd_craftsman`, `mutation_tester`, `harness_bootstrap`) — para el perfil híbrido | Si `active_profile` == `opencode_go` |
 | `.claude/agents/`            | `harness_bootstrap`, `craftsman_lead`, `spec_partner`, `gherkin_author`, `tdd_craftsman`, `judge`, `mutation_tester` | Si orquestas trabajo |
 | `.claude/skills/`            | `commit-hygiene` (commits limpios), `branch-pr` (rama y PR), `progress-log` (bitácoras y anti-teléfono) | Al commitear, PR o registrar progreso |
 | `model-map.yaml`             | Fuente de verdad `fase → tier → modelo` (perfiles anthropic y opencode_go); se lee 1× al arrancar | Antes de lanzar subagentes |
