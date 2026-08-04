@@ -211,6 +211,7 @@ OPENCODE_AGENT_FILES=(
 # ── 1b'. Skills transversales → .claude/skills/ (maquinaria) ────────────
 SKILL_FILES=(
   "commit-hygiene/SKILL.md" "branch-pr/SKILL.md" "progress-log/SKILL.md"
+  "ponytail/SKILL.md" "ponytail-review/SKILL.md"
 )
 
 copy_one() {  # src dst force
