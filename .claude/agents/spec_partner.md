@@ -49,6 +49,10 @@ que el humano quiera hablar de entrega):
 5. **Gap actual** — qué está mal, inconsistente o ausente hoy.
 6. **Implicaciones e impacto** — qué flujos, datos, UX o soporte se ven afectados.
 7. **Casos límite** — vacíos, datos parciales, fallos, permisos, estados raros.
+   Incluye siempre las dos preguntas de abuso de la skill `threat-lens`
+   (modo `spec`) cuando la feature cruza una frontera de confianza:
+   *¿quién NO debería poder hacer esto y qué pasa si lo intenta?* y
+   *si un campo llega con basura o con un valor ajeno, ¿qué queremos que pase?*
 8. **Gaps de decisión** — qué incógnitas harían la spec ambigua o fácil de sobre-construir.
 9. **Límites de alcance y NO-goals** — qué entra en el primer corte, qué es
    refinamiento posterior y qué **no se toca aunque esté relacionado**.
@@ -79,6 +83,10 @@ que el humano quiera hablar de entrega):
    - **Casos límite** — enumerados.
    - **Fuera de alcance** — qué NO hace esta feature y qué queda para después
      (no-goals explícitos). Si algo relacionado **no se toca**, dilo aquí.
+   - **Amenazas** (solo si cruza una frontera de confianza) — amenaza →
+     control → si se cubre con escenario `@sec`, con un check del `judge`, o
+     si queda **fuera del arnés**. Lo que queda fuera se escribe, no se omite:
+     el humano decide en la puerta si lo acepta.
    - **Decisiones** — cada decisión con su razón y la alternativa descartada.
 5. **PARA**. No invoques al `gherkin_author`. El `craftsman_lead` decide
    cuándo destilar los escenarios.

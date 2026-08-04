@@ -212,6 +212,10 @@ OPENCODE_AGENT_FILES=(
 SKILL_FILES=(
   "commit-hygiene/SKILL.md" "branch-pr/SKILL.md" "progress-log/SKILL.md"
   "ponytail/SKILL.md" "ponytail-review/SKILL.md"
+  "threat-lens/SKILL.md"
+  "threat-lens/references/frontend.md" "threat-lens/references/backend.md"
+  "threat-lens/references/datos.md" "threat-lens/references/supply-chain.md"
+  "threat-lens/references/ia.md" "threat-lens/references/payloads.md"
 )
 
 copy_one() {  # src dst force

@@ -35,7 +35,7 @@
 | `feature_list.json`          | Lista de tareas con estado (`pending` / `spec_ready` / `in_progress` / `done` / `blocked`) | Siempre, al empezar |
 | `progress/current.md`        | Estado de la sesión actual                                                  | Siempre, al empezar |
 | `progress/history.md`        | Bitácora append-only de sesiones anteriores                                 | Si necesitas contexto histórico |
-| `project-spec.md`            | Spec conversada: propósito, contrato y decisiones por feature               | Antes de destilar Gherkin o implementar |
+| `project-spec.md`            | Spec conversado: propósito, contrato y decisiones por feature               | Antes de destilar Gherkin o implementar |
 | `features/<name>.feature`    | Escenarios Gherkin (el contrato ejecutable que el humano aprueba)           | Antes de empezar el ciclo TDD |
 | `docs/workflow.md`           | El pipeline completo y los insights de cada fase                            | Antes de coordinar |
 | `docs/tdd.md`                | Las Tres Leyes del TDD; el ciclo Rojo-Verde-Refactor                        | Antes de escribir código |
@@ -52,7 +52,7 @@
 | `tools/run-mutation.sh`      | Wrapper: corre la mutación desde la raíz del proyecto, con el entorno cargado | Fase de mutación |
 | `.opencode/agents/`         | Subagentes opencode Go (`gherkin_author`, `tdd_craftsman`, `mutation_tester`, `harness_bootstrap`) — para el perfil híbrido | Si `active_profile` == `opencode_go` |
 | `.claude/agents/`            | `harness_bootstrap`, `craftsman_lead`, `spec_partner`, `gherkin_author`, `tdd_craftsman`, `judge`, `mutation_tester` | Si orquestas trabajo |
-| `.claude/skills/`            | `commit-hygiene` (commits limpios), `branch-pr` (rama y PR), `progress-log` (bitácoras y anti-teléfono) | Al commitear, PR o registrar progreso |
+| `.claude/skills/`            | `commit-hygiene` (commits limpios), `branch-pr` (rama y PR), `progress-log` (bitácoras y anti-teléfono), `ponytail` (escalera YAGNI/reuse-first, always-on), `ponytail-review` (caza over-engineering para el `judge`), `threat-lens` (seguridad: escenarios de abuso `@sec` en fase spec/gherkin + checks para el `judge`) | Al commitear, PR, registrar progreso, o escribir/revisar código |
 | `model-map.yaml`             | Fuente de verdad `fase → tier → modelo` (perfiles anthropic y opencode_go); se lee 1× al arrancar | Antes de lanzar subagentes |
 
 > Las rutas del código y los tests no están hardcodeadas: las define

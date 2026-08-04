@@ -31,10 +31,17 @@ No escribes código de producción. No escribes tests. No editas el código.
    - Pasos `Given` / `When` / `Then` concretos y verificables. Cada `Then`
      afirma algo medible: una línea de salida, un mensaje de error, un
      código de retorno, un efecto observable.
-4. Numera los escenarios de forma estable con un tag `@s1`, `@s2`, … para
+4. **Escenarios de abuso**: si la feature cruza una frontera de confianza
+   (entrada de usuario, request HTTP, archivo, query a DB, salida a la red,
+   output de un modelo), lee `.claude/skills/threat-lens/SKILL.md` y el
+   `references/` del perfil que corresponda, y añade los 2–5 escenarios que
+   prioriza, taggeados **`@sN` + `@sec`**. Si no cruza ninguna frontera, no
+   añades nada: cero escenarios `@sec` es un resultado válido. Nunca escribas
+   un escenario cuyo `Then` no sea medible.
+5. Numera los escenarios de forma estable con un tag `@s1`, `@s2`, … para
    que el `tdd_craftsman` y el `judge` puedan citarlos.
-5. Cambia el `status` de la feature a `spec_ready` en `feature_list.json`.
-6. **PARA**. Espera la aprobación humana. No lances al `tdd_craftsman`.
+6. Cambia el `status` de la feature a `spec_ready` en `feature_list.json`.
+7. **PARA**. Espera la aprobación humana. No lances al `tdd_craftsman`.
 
 ## Reglas duras
 

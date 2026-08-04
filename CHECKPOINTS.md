@@ -55,6 +55,10 @@
       (mapa `@s → test` en `progress/tdd_<name>.md`).
 - [ ] No hay código de producción que ningún test rojo haya pedido
       (disciplina TDD, ver `docs/tdd.md`).
+- [ ] Si la feature cruza una frontera de confianza (entrada externa, authz,
+      query a DB, salida a la red, output de un modelo), tiene al menos un
+      escenario `@sec` cubierto por un test, y las amenazas no cubiertas
+      están escritas en `project-spec.md` (skill `threat-lens`).
 
 ## C7 — Prueba de mutación
 

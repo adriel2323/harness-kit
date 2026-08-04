@@ -36,11 +36,18 @@ señalas qué falla, no lo arreglas.
      módulo dios (¿por qué un test cubre medio sistema?); **imports cruzados
      nuevos** entre módulos que antes no se conocían exigen justificación
      explícita contra `docs/architecture.md` (capas/dependencias permitidas).
-6. Ejecuta `./init.sh --fast` (verificación intermedia con scope de feat).
+6. **Seguridad**: invoca la skill `threat-lens` en modo `review`. Detecta el
+   perfil del stack, verifica que los `@sec` que el perfil exige existen y
+   están cubiertos, y corre sus checks de inspección **sobre los archivos que
+   esta feature tocó**. Un hallazgo BLOQUEANTE (sink sin parametrizar,
+   endpoint sin check de ownership, secreto en el diff, `@sec` exigido y
+   ausente) fuerza `CHANGES_REQUESTED`. Si la feature no cruza ninguna
+   frontera de confianza, la skill devuelve cero hallazgos y sigues.
+7. Ejecuta `./init.sh --fast` (verificación intermedia con scope de feat).
    Tiene que terminar verde. El gate de suite completa le queda al `Stop`
    hook / cierre del `craftsman_lead`; tú validas diseño y cobertura.
-7. Recorre `CHECKPOINTS.md`: marca `[x]`/`[ ]`.
-8. Emite veredicto.
+8. Recorre `CHECKPOINTS.md`: marca `[x]`/`[ ]`.
+9. Emite veredicto.
 
 > El `mutation_tester` corre **después** de tu aprobación. Tú juzgas
 > diseño y cobertura de escenarios; la mutación mide si los tests
@@ -75,6 +82,11 @@ Tu salida final es **un único bloque** en `progress/judge_<name>.md`:
 ## Calidad
 - (hallazgos concretos, con archivo:línea)
 
+## Seguridad (threat-lens, perfil: <perfiles detectados>)
+- Cobertura @sec: (@s cubierto / exigido y ausente)
+- Inspección: BLOQUEANTE|OBSERVACIÓN <archivo:línea> — <qué y cómo se arregla>
+- Fuera de alcance del arnés: (una línea, o "-")
+
 ## Checkpoints
 - C1..C7: [x]/[ ]
 
@@ -101,5 +113,7 @@ next: <recomendación para el lead, o "-">
 - ❌ Nunca apruebes con tests rojos o `./init.sh` en rojo.
 - ❌ Nunca apruebes si algún `@s` queda sin test.
 - ❌ Nunca apruebes producción que ningún test exige.
+- ❌ Nunca apruebes con un BLOQUEANTE de `threat-lens` abierto. Un secreto en
+   el diff se rota, no se "limpia" del historial.
 - ❌ Nunca edites el código. Dices qué falla, no lo arreglas.
 - ✅ Sé concreto: cita archivo y línea. Nada de feedback genérico.
