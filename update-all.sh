@@ -49,6 +49,27 @@ installed_version() {  # path
   [ -f "$vf" ] && cut -f1 "$vf" | head -1 || echo "?"
 }
 
+# Knobs de harness.config.sh que un --update NO puede traer solo.
+#
+# install.sh --update refresca la MAQUINARIA (tools/, docs/, agentes) pero
+# PRESERVA harness.config.sh, que es config del proyecto. Correcto: nadie quiere
+# que una actualizacion le pise el comando de tests. Pero significa que las
+# variables nuevas del kit no llegan solas, y sin aviso la actualizacion queda a
+# medias en silencio: las tools nuevas entran, la config que las enciende no.
+#
+# Todas tienen default seguro en la tool (ausente = comportamiento previo), asi
+# que esto es un aviso, no un error.
+NEW_KNOBS="HARNESS_MEM_MAX HARNESS_MUTATION_TIMEOUT HARNESS_MUTATION_CONCURRENCY HARNESS_MUTATION_MEM_MAX HARNESS_MUTATION_RANGE_FMT HARNESS_MUTATION_DIFF_BASE"
+
+missing_knobs() {  # path -> lista de variables ausentes (vacio si estan todas)
+  local cfg="$1/$KIT_SUBDIR/harness.config.sh" out="" v
+  [ -f "$cfg" ] || return 0
+  for v in $NEW_KNOBS; do
+    grep -q "^[[:space:]]*$v=" "$cfg" || out="$out $v"
+  done
+  printf '%s' "${out# }"
+}
+
 # ── --list ──────────────────────────────────────────────────────────────
 if [ "$MODE" = "list" ]; then
   info "Versión actual del kit: $KIT_VERSION"
@@ -68,21 +89,33 @@ fi
 
 # ── --prune ─────────────────────────────────────────────────────────────
 if [ "$MODE" = "prune" ]; then
-  tmp="$(mktemp)"; removed=0
+  tmp="$(mktemp)"; removed=0; dupes=0
+  seen=""
   while IFS=$'\t' read -r path ver ts; do
     [ -z "$path" ] && continue
-    if [ -d "$path" ]; then printf '%s\t%s\t%s\n' "$path" "$ver" "$ts" >> "$tmp"
-    else warn "fuera del registro (no existe): $path"; removed=$((removed+1)); fi
+    if [ ! -d "$path" ]; then
+      warn "fuera del registro (no existe): $path"; removed=$((removed+1)); continue
+    fi
+    # Deduplicar: install.sh agrega una linea por instalacion, asi que un
+    # proyecto reinstalado aparece N veces y se actualizaria N veces. Gana la
+    # entrada mas reciente (la ultima del archivo), por eso se guarda al final.
+    case "$seen" in
+      *"|$path|"*) dupes=$((dupes+1)) ;;
+    esac
+    seen="$seen|$path|"
+    printf '%s\t%s\t%s\n' "$path" "$ver" "$ts" >> "$tmp"
   done < "$REGISTRY"
-  mv "$tmp" "$REGISTRY"
-  ok "Prune completo: $removed ruta(s) eliminada(s) del registro."
+  # Quedarse con la ULTIMA aparicion de cada ruta, preservando el orden.
+  tac "$tmp" | awk -F'\t' '!seen[$1]++' | tac > "$tmp.dedup" && mv "$tmp.dedup" "$REGISTRY"
+  rm -f "$tmp"
+  ok "Prune completo: $removed ruta(s) inexistente(s), $dupes duplicada(s)."
   exit 0
 fi
 
 # ── update / dry-run ────────────────────────────────────────────────────
 [ -x "$INSTALL" ] || { fail "No encuentro install.sh ejecutable en $KIT_DIR"; exit 1; }
 
-total=0; updated=0; failed=0; missing=0
+total=0; updated=0; failed=0; missing=0; NEEDS_CONFIG=""
 while IFS=$'\t' read -r path ver ts; do
   [ -z "$path" ] && continue
   total=$((total+1))
@@ -93,10 +126,16 @@ while IFS=$'\t' read -r path ver ts; do
     warn "la ruta existe pero no tiene el arnés ($KIT_SUBDIR/): $path"; missing=$((missing+1)); continue
   fi
   if [ "$MODE" = "dry-run" ]; then
-    info "actualizaría: $path  ($(installed_version "$path") → $KIT_VERSION)"; continue
+    info "actualizaría: $path  ($(installed_version "$path") → $KIT_VERSION)"
+    _mk="$(missing_knobs "$path")"
+    [ -n "$_mk" ] && NEEDS_CONFIG="$NEEDS_CONFIG$path\t$_mk\n"
+    continue
   fi
   info "── Actualizando: $path"
-  if bash "$INSTALL" "$path" --update; then updated=$((updated+1))
+  if bash "$INSTALL" "$path" --update; then
+    updated=$((updated+1))
+    _mk="$(missing_knobs "$path")"
+    [ -n "$_mk" ] && NEEDS_CONFIG="$NEEDS_CONFIG$path\t$_mk\n"
   else fail "falló la actualización de: $path"; failed=$((failed+1)); fi
 done < "$REGISTRY"
 
@@ -107,4 +146,22 @@ if [ "$MODE" = "dry-run" ]; then
 else
   ok "Actualizadas: $updated/$total  (fallidas: $failed; omitidas: $missing)"
   [ "$missing" -gt 0 ] && echo "   Corre ./update-all.sh --prune para limpiar rutas inexistentes."
+fi
+
+if [ -n "$NEEDS_CONFIG" ]; then
+  echo ""
+  warn "Proyectos a los que les faltan variables NUEVAS en harness.config.sh:"
+  printf "%b" "$NEEDS_CONFIG" | while IFS=$'\t' read -r p vars; do
+    [ -z "$p" ] && continue
+    echo "   $p"
+    for v in $vars; do echo "      $v"; done
+  done
+  echo ""
+  echo "   Un --update PRESERVA harness.config.sh a proposito (es config tuya),"
+  echo "   asi que estas hay que agregarlas a mano. Todas tienen default seguro:"
+  echo "   ausentes = comportamiento previo, nada se rompe."
+  echo ""
+  echo "   Referencia: profiles/<lenguaje>.sh y docs/mutation-testing.md."
+  echo "   Ojo con HARNESS_MUTATION_RANGE_FMT: solo si tu mutador acepta rangos"
+  echo "   de linea (Stryker si; mutate.py, PIT y cargo-mutants NO)."
 fi
