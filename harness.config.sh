@@ -42,6 +42,18 @@ HARNESS_TEST_FILE_PATTERNS=""
 HARNESS_MUTATION_CMD="TODO: comando de mutación"
 HARNESS_MUTATION_THRESHOLD="100"
 
+# --- Scope de la mutacion por git diff (lo aplica run-mutation.sh) -----------
+# El umbral se define sobre las lineas NUEVAS O TOCADAS por la feature, no sobre
+# el archivo entero. Si tu mutador soporta rangos de linea, declaralos acá y
+# run-mutation.sh los saca solo del git diff.
+#
+#   Stryker (JS/TS):  "{file}:{start}-{end}"
+#   mutate.py, PIT, cargo-mutants: no soportan rangos -> dejar VACIO.
+HARNESS_MUTATION_RANGE_FMT=""
+# Contra que se diffea. HEAD = trabajo sin commitear. Para features que ya
+# tienen commits en rama propia, usá la rama de integracion o un merge-base.
+HARNESS_MUTATION_DIFF_BASE="${HARNESS_MUTATION_DIFF_BASE:-HEAD}"
+
 # --- Scope de feat (loop rápido + mutación) ---------------------------------
 # Lista de test files (separados por espacio) de la feat EN CURSO. Vacío = cae a
 # HARNESS_TEST_CMD (suite completa) como hasta hoy. Lo puebla el tdd_craftsman al
@@ -70,3 +82,27 @@ HARNESS_LINT_CMD=""
 
 # Comando barato que prueba que el toolchain está instalado.
 HARNESS_RUNTIME_CHECK="true"
+
+# --- Techos de recursos ------------------------------------------------------
+# Agregado el 2026-08-21 despues de que un `node --test` huerfano de la mutacion
+# creciera a 10.1 GB de RSS, agotara 16 GB de swap y el OOM killer apagara la
+# distro WSL completa (systemd tira abajo init.scope entero con OOMPolicy=stop).
+#
+# HARNESS_MEM_MAX: techo de RAM del comando de tests (lo aplica
+# tools/guard-mem.sh via cgroup v2). Sintaxis de systemd: 2G, 512M, 4G...
+# "off" desactiva el guard. Si el proceso se pasa, muere SOLO el, con exit 137.
+#
+# Ojo con la sintaxis "${VAR:-default}": es a proposito y se aparta del resto del
+# archivo (asignaciones planas). harness-env.sh hace `set -a` y sourcea este
+# config, asi que una asignacion plana PISA lo que venga del entorno. Estos dos
+# knobs son justo los que uno quiere subir en una corrida puntual sin editar el
+# config ("dale 6G a esta suite pesada"), asi que dejamos ganar al entorno:
+#   HARNESS_MEM_MAX=6G bash harness-kit/tools/run-tests.sh
+HARNESS_MEM_MAX="${HARNESS_MEM_MAX:-2G}"
+
+# HARNESS_MUTATION_TIMEOUT: segundos que mutate.py le da a la suite por mutante
+# antes de darlo por colgado y matar el grupo de procesos entero. Un timeout
+# cuenta como mutante MUERTO (la suite no paso) y se marca "muerto(timeout)" en
+# el log. Subilo si tu suite es lenta de verdad; no lo pongas en 0.
+HARNESS_MUTATION_TIMEOUT="${HARNESS_MUTATION_TIMEOUT:-120}"
+

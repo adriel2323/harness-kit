@@ -46,6 +46,89 @@ MUTATION_TEST_CMD="${HARNESS_MUTATION_TEST_CMD:-}"
 # $SCOPE esté vacío: en ese caso queda la suite completa con fail-fast, que
 # sigue siendo un fallback seguro (no cambia el comportamiento de hoy salvo
 # por el corte anticipado).
+# ── Scope por git diff: mutar SOLO las lineas de la feature ─────────────
+#
+# El umbral del arnes (HARNESS_MUTATION_THRESHOLD) se define sobre las lineas
+# NUEVAS O TOCADAS por la feature, no sobre el archivo entero. Mutar el archivo
+# completo mezcla dos cosas distintas: los mutantes del codigo viejo sobreviven
+# porque nadie escribio tests para el hace dos anios, hunden el score y no dicen
+# NADA sobre la feature en curso. Medido el 2026-08-21 en queryBuilder.js:
+# archivo completo 35.96% (gate rojo), lineas de la feature 100% (gate verde).
+# El numero honesto es el segundo.
+#
+# HARNESS_MUTATION_RANGE_FMT declara como escribe rangos el mutador; vacio =
+# no los soporta y los archivos van enteros (mutate.py, PIT, cargo-mutants).
+# Stryker usa "{file}:{start}-{end}".
+#
+# HARNESS_MUTATION_DIFF_BASE es contra que se diffea. Default HEAD = el trabajo
+# sin commitear. Si tu flujo hace commits a mitad de feature en una rama propia,
+# poné la rama de integracion (p.ej. "origin/main") o un merge-base.
+RANGE_FMT="${HARNESS_MUTATION_RANGE_FMT:-}"
+DIFF_BASE="${HARNESS_MUTATION_DIFF_BASE:-HEAD}"
+
+if [ -n "$RANGE_FMT" ] && [ "$#" -gt 0 ] && git rev-parse --git-dir >/dev/null 2>&1; then
+  SCOPED=()
+  for _f in "$@"; do
+    # Rango explicito del que llama: respetarlo, no pisarlo.
+    case "$_f" in *:*) SCOPED+=("$_f"); continue ;; esac
+    if [ ! -f "$_f" ]; then SCOPED+=("$_f"); continue; fi
+
+    # Archivo nuevo sin trackear: TODO el archivo es de la feature. No es un
+    # fallback, es la respuesta correcta.
+    if ! git ls-files --error-unmatch -- "$_f" >/dev/null 2>&1; then
+      SCOPED+=("$_f"); continue
+    fi
+
+    # De cada hunk `@@ -a,b +c,d @@` sale el rango c..c+d-1 del archivo NUEVO.
+    # d=0 es un borrado puro: no hay lineas nuevas que mutar, se descarta.
+    _hunks="$(git diff -U0 "$DIFF_BASE" -- "$_f" 2>/dev/null | awk '
+      /^@@/ {
+        plus = $3; sub(/^\+/, "", plus); split(plus, p, ",")
+        start = p[1] + 0; count = (p[2] == "" ? 1 : p[2] + 0)
+        if (count > 0) print start "-" (start + count - 1)
+      }')"
+
+    if [ -z "$_hunks" ]; then
+      # SIN rango, NO sin mutantes. Un rango vacio le daria a Stryker cero
+      # mutantes = score 100% = gate VERDE sobre cero evidencia, que es el peor
+      # resultado posible. Caer al archivo entero falla hacia el rojo, que es
+      # el lado seguro, y avisa fuerte para que se note.
+      echo "[harness] AVISO: '$_f' no tiene cambios contra $DIFF_BASE." >&2
+      echo "[harness]        Se muta el ARCHIVO ENTERO (incluye codigo viejo," >&2
+      echo "[harness]        asi que el score va a ser pesimista). Si la feature" >&2
+      echo "[harness]        ya esta commiteada, apuntá HARNESS_MUTATION_DIFF_BASE" >&2
+      echo "[harness]        a la rama de integracion." >&2
+      SCOPED+=("$_f")
+    else
+      for _h in $_hunks; do
+        _r="${RANGE_FMT//\{file\}/$_f}"
+        _r="${_r//\{start\}/${_h%-*}}"
+        _r="${_r//\{end\}/${_h#*-}}"
+        SCOPED+=("$_r")
+      done
+    fi
+  done
+  set -- "${SCOPED[@]}"
+fi
+
+# `--test-cmd` es un flag de tools/mutate.py (el mutador que trae el kit), NO un
+# contrato universal de mutadores. Las herramientas nativas (Stryker, PIT,
+# cargo-mutants, go-mutesting) sacan el comando de tests y el scope de SU PROPIO
+# archivo de config, y ante un flag desconocido abortan. Hasta 2026-08-21 esto se
+# inyectaba siempre, asi que HARNESS_MUTATION_CMD solo podia ser mutate.py:
+# apuntarlo a Stryker fallaba en el arranque.
+#
+# Los wrappers por herramienta (tools/stryker-runner.sh y compania) traducen la
+# convencion del kit a los flags de cada tool; ahi es donde vive ese conocimiento.
+case "$CMD" in
+  *mutate.py*) ACCEPTS_TEST_CMD=1 ;;
+  *)           ACCEPTS_TEST_CMD=0 ;;
+esac
+
+if [ "$ACCEPTS_TEST_CMD" = 0 ]; then
+  exec bash -c "$CMD \"\$@\"" _ "$@"
+fi
+
 if [ -n "$MUTATION_TEST_CMD" ]; then
   RESOLVED="${MUTATION_TEST_CMD//\{scope\}/$SCOPE}"
   exec bash -c "$CMD \"\$@\" --test-cmd \"$RESOLVED\"" _ "$@"

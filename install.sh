@@ -186,6 +186,7 @@ KIT_MACHINERY=(
   "tools/run-tests.sh" "tools/test-affected.sh" "tools/run-mutation.sh"
   "tools/harness-env.sh" "tools/mutate.py" "tools/run-opencode.sh"
   "tools/resolve-model.py" "tools/complexity-scan.sh" "tools/mirror-check.sh"
+  "tools/guard-mem.sh" "tools/test-map.sh" "tools/stryker-runner.sh"
 )
 
 # ── 1a'. ESTADO del usuario → harness-kit/ (se PRESERVA en --update) ────
@@ -380,7 +381,7 @@ fi
 
 # ── 4. Permisos de ejecución ────────────────────────────────────────────
 chmod +x "$KIT_DST/init.sh" 2>/dev/null || true
-for s in run-tests.sh test-affected.sh run-mutation.sh harness-env.sh; do
+for s in run-tests.sh test-affected.sh run-mutation.sh harness-env.sh guard-mem.sh test-map.sh stryker-runner.sh; do
   chmod +x "$KIT_DST/tools/$s" 2>/dev/null || true
 done
 

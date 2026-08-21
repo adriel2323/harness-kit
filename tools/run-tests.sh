@@ -34,4 +34,9 @@ case "$CMD" in
 esac
 
 cd "$HARNESS_PROJECT_ROOT_ABS" || exit 1
-exec bash -c "$CMD"
+
+# Techo de memoria: el comando de tests corre dentro de tools/guard-mem.sh, que
+# lo mete en un cgroup transitorio con MemoryMax. Motivo (2026-08-21): un proceso
+# de tests sin techo llego a 10.1 GB de RSS y el OOM killer se llevo puesta la
+# distro WSL entera. Sin cgroups disponibles guard-mem.sh es transparente.
+exec bash "$HARNESS_KIT_DIR/tools/guard-mem.sh" bash -c "$CMD"
