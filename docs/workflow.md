@@ -18,11 +18,18 @@ pending
   │  gherkin_author — DESTILACIÓN ───────────────►  features/<name>.feature
   │      ".feature files from the project-spec.md"
   │
+  │  design_partner — DISEÑO ────────────────────►  docs/design/DDR-<id>-<slug>.md
+  │      dónde vive el código y qué firma tiene, antes de que exista
+  │      (fase apagable; el carril decide si abre puerta)
+  │
   ▼  ⏸  PUERTA HUMANA: el humano aprueba los escenarios (el contrato)
+  │      + elige la opción de diseño, si el carril es estructural
   │
 in_progress
   │  tdd_craftsman — ROJO → VERDE → REFACTOR ────►  código + tests
   │      un test a la vez; las Tres Leyes del TDD
+  │
+  │      dentro de la interfaz congelada del DDR, si lo hay
   │
   │  judge — REVIEW ─────────────────────────────►  progress/judge_<name>.md
   │      "The review step is the whole game. Agents draft, judgment prunes."
@@ -34,7 +41,8 @@ done
 ```
 
 Una sola feature a la vez. Una sola puerta de aprobación humana: sobre los
-escenarios Gherkin, **antes** de escribir producción.
+escenarios Gherkin —y, si el carril de diseño es `estructural`, sobre la opción
+de diseño— **antes** de escribir producción.
 
 ## Fase 0 — Bootstrap (una vez por proyecto)
 
@@ -66,6 +74,38 @@ Aprobar tarde (cuando ya hay código) es caro. Aprobar el `.feature` es
 barato y es el punto de máximo apalancamiento: un escenario mal definido
 arrastra todo el TDD. El `craftsman_lead` **para** aquí y espera.
 
+### 3bis. El diseño va después del Gherkin y antes del TDD
+
+Tres razones que apuntan al mismo lado:
+
+1. La fase de diseño es **la única del ciclo donde cambiar de idea es gratis**.
+   Todo lo que se decide después cuesta código escrito.
+2. Los escenarios son el insumo que hace **evaluable** el "diseñarlo dos veces":
+   la opción A y la B se comparan por el costo de un requerimiento futuro
+   **concreto** — las features `pending` de `feature_list.json`, por nombre. Sin
+   escenarios no hay con qué cotizar.
+3. Primero el QUÉ, después el CÓMO. Mezclarlos hace que la discusión de diseño
+   contamine el contrato de comportamiento.
+
+Sin esta fase, el `tdd_craftsman` **inventa la estructura feature por feature**.
+Sobre N features eso produce N módulos localmente óptimos y globalmente
+incoherentes. El `judge` puede olerlo, pero solo cuando el código ya existe y
+cambiar de idea cuesta.
+
+**Es una fase, no una segunda puerta.** El diseño viaja en la misma parada que
+los escenarios. Y solo el carril `estructural` presenta opciones para elegir:
+en `trivial` y `estandar` el DDR se registra como `aplicado por defecto` y la
+parada muestra solo los escenarios, como siempre.
+
+**El DDR es por módulo, no por feature.** Antes de diseñar nada, el
+`design_partner` busca en `docs/design/INDEX.md` si el módulo ya tiene decisión
+tomada: si la tiene, la cita y sigue. Así la feature #7 **hereda** la interfaz
+en vez de inventar la séptima abstracción del mismo concepto.
+
+**Se puede apagar** (`rules.design_default` o `"design": false` por feature).
+Lo que se apaga es **la fase**, nunca **la lente**: el `judge` sigue aplicando
+el catálogo de red flags siempre, porque cuesta cero corridas extra.
+
 ### 4. TDD estricto: un test a la vez
 > "single test followed by code (TDD)"
 
@@ -96,6 +136,8 @@ medida real de si la red atrapa peces. Ver `docs/mutation-testing.md`.
 | `harness.config.sh`              | harness_bootstrap | Comandos por lenguaje (test, mutación, build)       |
 | `project-spec.md`                | spec_partner      | Spec conversada: propósito, contrato, decisiones    |
 | `features/<name>.feature`        | gherkin_author    | Escenarios Gherkin `@s1..@sn` (el contrato firmado) |
+| `docs/design/DDR-<id>-<slug>.md` | design_partner    | Decisión de diseño **por módulo**: opciones, descartadas y **interfaz congelada** |
+| `docs/design/INDEX.md`           | design_partner (fila) + craftsman_lead (estado) | Índice `módulo → DDR → estado`: lo que evita abrir puerta dos veces |
 | código + tests                   | tdd_craftsman     | Producción y tests, tallados por TDD                |
 | `progress/tdd_<name>.md`         | tdd_craftsman     | Bitácora de ciclos + mapa `@s → test`               |
 | `progress/judge_<name>.md`       | judge             | Veredicto de review + checkpoints                   |

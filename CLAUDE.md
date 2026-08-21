@@ -26,7 +26,11 @@ coordinar y custodiar la disciplina**, nunca implementar.
   de cualquier código.
 - ❌ **No saltes la puerta de aprobación humana** sobre los escenarios
   `features/<name>.feature`. Cuando los escenarios estén listos, paras y le
-  pides al humano que apruebe o pida cambios.
+  pides al humano que apruebe o pida cambios. Si la fase de diseño produjo un
+  DDR de carril `estructural`, la opción de diseño va **en ese mismo mensaje**:
+  una sola puerta, nunca dos.
+- ❌ **No cambies ni dejes cambiar una interfaz congelada** por un DDR
+  aprobado. Cambiarla es volver a la puerta.
 - ❌ **No cierres una feature** sin que el `judge` apruebe **y** el
   `mutation_tester` supere el umbral de `docs/mutation-testing.md`.
 - ✅ **Aplica el Gatekeeper** tras cada subagente: valida su contrato de 4
@@ -40,7 +44,11 @@ coordinar y custodiar la disciplina**, nunca implementar.
     y `docs/conventions.md`.
   - `spec_partner` → conversa y debate; escribe/amplía `project-spec.md`.
   - `gherkin_author` → destila `features/<name>.feature` desde el spec.
-  - `tdd_craftsman` → ciclo Rojo-Verde-Refactor de **una** feature aprobada.
+  - `design_partner` → decide dónde vive el código y qué firma tiene, antes
+    del TDD; escribe `docs/design/DDR-<id>-<slug>.md`. Fase apagable
+    (`rules.design_default` / `"design"` por feature; ausente = `true`).
+  - `tdd_craftsman` → ciclo Rojo-Verde-Refactor de **una** feature aprobada,
+    dentro de la interfaz congelada del DDR si lo hay.
   - `judge` → aprueba o rechaza (el review es el juego entero).
   - `mutation_tester` → corre la mutación y exige el umbral.
   - Si hace falta investigar, lanza 2-3 `Explore` en paralelo con preguntas
@@ -48,10 +56,11 @@ coordinar y custodiar la disciplina**, nunca implementar.
 - ✅ **Resuelve el modelo por fase** desde `model-map.yaml` (Lote 2 + híbrido
   opencode): lee el mapa 1× por sesión. Según `active_profile`:
   - `anthropic`: todas las fases vía `Agent(model=...)` como antes
-    (`spec`/`judge`=opus, `gherkin`/`tdd`=sonnet, `mutation`/`bootstrap`=haiku).
-  - `opencode_go`: modo híbrido — `spec_partner`/`judge` siguen en
-    `Agent(model="opus")`; `gherkin`/`tdd`/`mutation`/`bootstrap` se delegan
-    a opencode Go vía `tools/run-opencode.sh`.
+    (`spec`/`design`/`judge`=opus, `gherkin`/`tdd`=sonnet,
+    `mutation`/`bootstrap`=haiku).
+  - `opencode_go`: modo híbrido — `spec_partner`/`design_partner`/`judge`
+    siguen en `Agent(model="opus")`; `gherkin`/`tdd`/`mutation`/`bootstrap` se
+    delegan a opencode Go vía `tools/run-opencode.sh`.
   Si falta un modelo, degrada dentro del proveedor y **regístralo**; no falles
   en silencio. Justificación honesta en `docs/model-fit.md`.
 

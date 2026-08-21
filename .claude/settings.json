@@ -31,7 +31,9 @@
       "Bash(./init.sh)",
       "Bash(bash tools/run-tests.sh*)",
       "Bash(bash tools/test-affected.sh*)",
-      "Bash(bash tools/run-mutation.sh*)"
+      "Bash(bash tools/run-mutation.sh*)",
+      "Bash(bash tools/complexity-scan.sh*)",
+      "Bash(bash tools/mirror-check.sh*)"
     ],
     "deny": [
       "Read(./node_modules/**)",

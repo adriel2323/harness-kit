@@ -19,7 +19,8 @@ Salida (por defecto, una línea): el modelo resuelto.
   --field all          -> "fase|perfil|tier|channel|modelo"
 
 Canal:
-  - spec_partner, judge  -> "agent"  (siempre Claude vía Agent(), ambos perfiles)
+  - spec_partner, design_partner, judge -> "agent"  (siempre Claude vía Agent(),
+                                                     en ambos perfiles)
   - resto                -> "opencode" si active_profile==opencode_go, else "agent"
 """
 import argparse
@@ -36,7 +37,7 @@ ROOT = Path(__file__).resolve().parent.parent
 MAP = ROOT / "model-map.yaml"
 
 # Fases que SIEMPRE corren en Claude Agent (no abaratar), ambos perfiles.
-ALWAYS_AGENT = {"spec_partner", "judge"}
+ALWAYS_AGENT = {"spec_partner", "design_partner", "judge"}
 
 
 def load():

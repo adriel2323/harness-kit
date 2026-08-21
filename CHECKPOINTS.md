@@ -29,6 +29,16 @@
 - [ ] No hay dependencias externas no justificadas (las que haya están
       documentadas como decisión en `feature_list.json` o `project-spec.md`).
 - [ ] No hay prints/logs de debug sueltos, ni TODOs sin contexto.
+- [ ] Ningún red flag de severidad **ALTA** sin justificar sobre los archivos
+      tocados: filtración de información, descomposición temporal, código no
+      obvio (skill `aposd-design`, `references/red-flags.md`). Uno aceptado a
+      conciencia va escrito con su costo y su disparador.
+- [ ] Los comentarios dicen lo que el código no puede decir (unidad, rango,
+      invariante, por qué). Ninguno parafrasea la firma — es el red flag más
+      frecuente en código generado por LLM.
+- [ ] Ningún nombre vago: `data`, `info`, `manager`, `helper`, `process`,
+      `handle`, `utils`. Un nombre que costó elegir es señal de que el concepto
+      está mal cortado, no un problema de vocabulario.
 
 ## C4 — La verificación es real
 
@@ -59,6 +69,13 @@
       query a DB, salida a la red, output de un modelo), tiene al menos un
       escenario `@sec` cubierto por un test, y las amenazas no cubiertas
       están escritas en `project-spec.md` (skill `threat-lens`).
+- [ ] Si el módulo tocado tiene un DDR aprobado (`docs/design/INDEX.md`), el
+      **nombre público** y el **número de parámetros** del código coinciden con
+      su **Interfaz congelada**. Añadir un parámetro opcional **no** cuenta como
+      coincidir: no cambia la aridad para el llamador, pero amplía la superficie
+      que el DDR congeló. Los **tipos** sí admiten equivalentes (alias,
+      `Sequence` por `list`), salvo volver algo nullable donde el DDR decía que
+      no. Cambiar la interfaz es volver a la puerta humana, no una mejora.
 
 ## C7 — Prueba de mutación
 

@@ -157,6 +157,14 @@ if [ -f "model-map.yaml" ] && command -v python3 >/dev/null 2>&1; then
   fi
 fi
 
+# Drift entre .claude/agents/ y su espejo .opencode/agents/. Solo estructura
+# (encabezados ##): las diferencias de prosa y de frontmatter son legítimas.
+# NUNCA falla — informa. Un espejo desactualizado hace correr al perfil
+# opencode_go con un prompt viejo, y eso no lo detecta ningún otro check.
+if [ -f "tools/mirror-check.sh" ]; then
+  bash tools/mirror-check.sh --quiet || true
+fi
+
 echo ""
 echo "── 6. Ejecutando tests ─────────────────────────────────"
 # Los tests corren en la raíz del proyecto (donde viven src/ y tests/).

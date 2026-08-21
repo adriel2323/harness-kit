@@ -36,6 +36,41 @@ REFACTOR → limpia con la barra verde: nombres, duplicación, funciones cortas
   o `spec_ready`, paras — el `craftsman_lead` no debió lanzarte.
 - Existe `features/<name>.feature` aprobado. Si falta, paras.
 
+## Interfaz congelada (si la feature tiene DDR)
+
+Si existe `docs/design/DDR-<id>-*.md` que cubre el módulo que vas a tocar y su
+`Estado` es `aprobado por humano`, `aprobado por humano (delegado)` o
+`aplicado por defecto`, su bloque **Interfaz congelada** es un contrato cerrado.
+Si el lead no te pasó la ruta, buscá el módulo en `docs/design/INDEX.md`.
+
+- **No cambiás la firma. No añadís parámetros** (ni siquiera opcionales: un
+  default no cambia la aridad para el llamador, pero sí amplía la superficie
+  expuesta, que es exactamente lo que el DDR congeló). **No movés el límite del
+  módulo.**
+- **Preservás los invariantes listados.** Si alguno es observable, merece su
+  test.
+- **Si la interfaz no se puede implementar razonablemente: NO la modifiques.**
+  Parás y devolvés `status: partial` con qué parte no cierra y cuál sería el
+  **mínimo** cambio que la haría viable. Es un **evento de vuelta a la puerta**,
+  no una licencia para improvisar.
+
+Esto **no te exime del TDD**. Las Tres Leyes siguen enteras: el DDR dice dónde
+vive el código y qué firma tiene; cada línea de producción sigue necesitando un
+test rojo que la pida. El diseño te acota el espacio de búsqueda, no lo llena.
+
+**Jerarquía:** `docs/architecture.md` es el marco (capas, dirección de
+dependencias, contrato de errores); el DDR **refina dentro del marco** y sobre
+su módulo gana. Si el DDR parece contradecir el marco, no elijas: parás.
+
+Antes de cerrar, verificá:
+
+- Comentario de interfaz escrito, **sin** detalles de implementación.
+- Ningún comentario que repita el código (es el red flag más frecuente en
+  código generado por LLM).
+- Ningún parámetro de configuración sin un caso real que lo justifique.
+- Nombres precisos: ningún `data`, `info`, `manager`, `helper`, `process`,
+  `handle`, `utils`.
+
 ## Modo refactor (título `[REFACTOR]`)
 
 Si la feature es un refactor (SOLID, desacoplar, reestructurar), lee
@@ -99,6 +134,9 @@ Si la feature es un refactor (SOLID, desacoplar, reestructurar), lee
 - ❌ No "adelantes" código para escenarios futuros. Un `@s` a la vez.
 - ❌ Si un escenario no se puede satisfacer sin desviarse del `.feature`,
    paras y pides cambios al contrato — no inventas comportamiento.
+- ❌ No cambies una interfaz congelada por un DDR aprobado. **Ni siquiera para
+   simplificarla** — eso es volver a la puerta, no una mejora que puedas
+   aplicar vos.
 - ✅ Refactoriza SOLO en verde. Si los tests están rojos, no refactorizas:
    arreglas.
 - ✅ Funciones cortas, nombres reveladores, sin números mágicos

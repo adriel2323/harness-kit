@@ -26,6 +26,14 @@ bloat, son el contrato), la suite completa, y el umbral de mutación. Un test
 de TDD o un `assert` self-check es el mínimo ponytail, nunca lo marques
 `delete:`.
 
+**Deslinde con `aposd-design`.** Las dos miran diseño pero por ejes distintos y
+no se pisan: vos buscás qué **borrar** (código de más); `aposd-design` busca si
+el módulo **expone de más o esconde de menos** (superficie). Un módulo puede ser
+mínimo en líneas y pésimo en superficie — ahí vos no tenés nada que decir y la
+otra sí. Y al revés: una abstracción que `aposd-design` justificó con un DDR
+aprobado **no se marca `delete:`**; si de verdad sobra, eso es volver a la puerta
+de diseño, no una línea de review.
+
 ## Format
 
 `L<line>: <tag> <what>. <replacement>.`, or `<file>:L<line>: ...` for

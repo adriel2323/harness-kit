@@ -10,7 +10,7 @@ description: >
 
 # Branch & PR
 
-> Transversal al flujo de 5 fases. Una rama por feature, un PR por feature:
+> Transversal a todo el pipeline. Una rama por feature, un PR por feature:
 > espeja la regla "una feature a la vez". Rutas de artefactos y comandos se
 > interpretan según la regla de base del proyecto (ver `.claude/CLAUDE.md`).
 

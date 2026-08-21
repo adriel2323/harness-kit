@@ -13,6 +13,8 @@
       "blocked"
     ],
     "sdd_required_when": "feature has \"sdd\": true",
+    "design_default": true,
+    "design_required_when": "feature has \"design\": true (hereda design_default si falta; ausente = true). Apaga la FASE design_partner, nunca la lente de red flags del judge (esa cuesta cero corridas extra y corre siempre).",
     "out_of_scope_field": "una feature pending con \"sdd\": true puede declarar \"out_of_scope\": [\"...\"] (no-goals explícitos); lo escribe spec_partner durante la conversación. No se añade retroactivamente a features ya \"done\"."
   },
   "features": [
@@ -20,7 +22,7 @@
       "id": 1,
       "name": "feature_ejemplo",
       "title": "Feature de ejemplo (reemplázame)",
-      "description": "Plantilla de feature. Borra esta y añade las tuyas. Toda feature con \"sdd\": true recorre el pipeline completo: spec_partner → gherkin_author → (puerta humana) → tdd_craftsman → judge → mutation_tester.",
+      "description": "Plantilla de feature. Borra esta y añade las tuyas. Toda feature con \"sdd\": true recorre el pipeline completo: spec_partner → gherkin_author → design_partner → (puerta humana) → tdd_craftsman → judge → mutation_tester. Añade \"design\": false a una entrada para saltarte la fase de diseño en esa feature concreta.",
       "acceptance": [
         "Criterio de aceptación 1: observable y verificable.",
         "Criterio de aceptación 2: incluye al menos un caso límite/error.",

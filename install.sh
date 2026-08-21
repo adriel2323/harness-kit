@@ -30,9 +30,9 @@
 #   │   ├── settings.json        #   hooks → harness-kit/* ; permisos ; deny rules
 #   │   ├── CLAUDE.md            #   puntero fino: importa el arnés + regla de base
 #   │   ├── agents/*.md          #   los 7 subagentes
-#   │   └── skills/*/SKILL.md    #   skills transversales (commit-hygiene, branch-pr, progress-log)
+#   │   └── skills/*/SKILL.md    #   skills transversales (lista real: SKILL_FILES, abajo)
 #   └── harness-kit/             # TODO el resto del arnés, self-contained
-#       ├── docs/ tools/ progress/ features/
+#       ├── docs/ docs/design/ tools/ progress/ features/
 #       ├── feature_list.json project-spec.md harness.config.sh init.sh
 #       ├── .harness-version     #   sello de versión instalada
 #       └── AGENTS.md CHECKPOINTS.md QUICKSTART.md CLAUDE.md
@@ -181,9 +181,11 @@ KIT_MACHINERY=(
   "model-map.yaml" "docs/model-fit.md"
   "docs/workflow.md" "docs/tdd.md" "docs/gherkin.md" "docs/mutation-testing.md"
   "docs/architecture.md" "docs/conventions.md" "docs/verification.md" "docs/refactoring.md"
+  "docs/design/PLANTILLA-DDR.md" "docs/complejidad.md"
+  "docs/aposd-integracion.md" "docs/aposd-plan-implementacion.md"
   "tools/run-tests.sh" "tools/test-affected.sh" "tools/run-mutation.sh"
   "tools/harness-env.sh" "tools/mutate.py" "tools/run-opencode.sh"
-  "tools/resolve-model.py"
+  "tools/resolve-model.py" "tools/complexity-scan.sh" "tools/mirror-check.sh"
 )
 
 # ── 1a'. ESTADO del usuario → harness-kit/ (se PRESERVA en --update) ────
@@ -191,18 +193,19 @@ KIT_MACHINERY=(
 KIT_SEED=(
   "feature_list.json" "project-spec.md"
   "progress/current.md" "progress/history.md"
+  "docs/design/INDEX.md"
 )
 
 # ── 1b. Subagentes → .claude/agents/ (maquinaria) ───────────────────────
 AGENT_FILES=(
-  "craftsman_lead.md" "spec_partner.md" "gherkin_author.md" "tdd_craftsman.md"
-  "judge.md" "mutation_tester.md" "harness_bootstrap.md"
+  "craftsman_lead.md" "spec_partner.md" "gherkin_author.md" "design_partner.md"
+  "tdd_craftsman.md" "judge.md" "mutation_tester.md" "harness_bootstrap.md"
 )
 
 # ── 1b''. Subagentes opencode Go → harness-kit/.opencode/agents/ (maquinaria)
 # Solo las fases que el perfil opencode_go delega a opencode (ver model-map.yaml
-# y craftsman_lead.md). spec_partner/judge/craftsman_lead corren vía Claude
-# Agent(), no necesitan definición opencode. opencode lee .opencode/agents/
+# y craftsman_lead.md). spec_partner/design_partner/judge/craftsman_lead corren
+# vía Claude Agent(), no necesitan definición opencode. opencode lee .opencode/agents/
 # desde el cwd; run-opencode.sh hace cd a harness-kit/, por eso viven ahí.
 OPENCODE_AGENT_FILES=(
   "gherkin_author.md" "tdd_craftsman.md" "mutation_tester.md" "harness_bootstrap.md"
@@ -216,6 +219,9 @@ SKILL_FILES=(
   "threat-lens/references/frontend.md" "threat-lens/references/backend.md"
   "threat-lens/references/datos.md" "threat-lens/references/supply-chain.md"
   "threat-lens/references/ia.md" "threat-lens/references/payloads.md"
+  "aposd-design/SKILL.md"
+  "aposd-design/references/red-flags.md" "aposd-design/references/puerta-humana.md"
+  "aposd-design/references/integracion-sdd.md"
 )
 
 copy_one() {  # src dst force

@@ -10,7 +10,7 @@ description: >
 
 # Commit Hygiene
 
-> Transversal al flujo de 5 fases. No cambia el pipeline; gobierna **cómo se
+> Transversal a todo el pipeline. No cambia el pipeline; gobierna **cómo se
 > registra** el trabajo que el pipeline ya validó. Rutas de artefactos
 > (`docs/`, `progress/`, `features/`, `feature_list.json`) y comandos
 > (`./init.sh`, `tools/...`) se interpretan según la regla de base del

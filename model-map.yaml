@@ -26,7 +26,9 @@ profiles:
   opencode_go:
     # Suscripción OpenCode Go ($10/mes). agent_model usa formato provider/model
     # que acepta `opencode run --model`. Los IDs exactos están en docs.go.
-    # spec_partner y judge NO tienen modelo Go: caen a Claude vía Agent().
+    # spec_partner, design_partner y judge NO tienen modelo Go: caen a Claude
+    # vía Agent(). En este perfil son 3 fases Opus, no 2 — encarecimiento real
+    # del modo híbrido, asumido a conciencia (docs/model-fit.md §3).
     tiers:
       deep:     { agent_model: anthropic/claude-opus-4-8,           id: claude-opus-4-8 }
       standard: { agent_model: opencode-go/deepseek-v4-pro,        id: deepseek-v4-pro }
@@ -48,6 +50,7 @@ profiles:
 phase_tiers:
   spec_partner:      deep      # debate de producto/pushback; la calidad compone
   gherkin_author:    standard  # destilación estructurada spec→Gherkin
+  design_partner:    deep      # composición de juicio; un mal límite de módulo lo pagan las N features siguientes
   tdd_craftsman:     standard  # TDD estricto; los gates lo respaldan
   judge:             deep      # "el review es el juego entero"; nunca abaratar
   mutation_tester:   cheap     # corre la mutación; apenas necesita LLM
@@ -59,7 +62,7 @@ phase_tiers:
 # le tocaria por tier. Solo se activan si active_profile NO es anthropic.
 # Sintaxis: <fase>: { model: <id completo opencode>, provider: <provider> }
 # - Si se omite model, se usa el del tier.
-# - spec_partner y judge no tienen override: siempre Claude Opus.
+# - spec_partner, design_partner y judge no tienen override: siempre Claude Opus.
 phase_overrides:
   gherkin_author:   { model: opencode-go/glm-5.2 }
   tdd_craftsman:    { model: opencode-go/deepseek-v4-pro }

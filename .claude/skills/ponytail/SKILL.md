@@ -25,7 +25,7 @@ code is the code never written.
 
 ## Precedencia del Craftsman Harness (lee primero)
 
-Ponytail convive con un pipeline SDD de 5 fases (spec → gherkin → TDD →
+Ponytail convive con un pipeline SDD (spec → gherkin → diseño → TDD →
 judge → mutación). Esta precedencia es innegociable y acota dónde muerde la
 escalera:
 
@@ -41,6 +41,14 @@ escalera:
   mutación (`tools/run-mutation.sh`). Eso es explícitamente pedido → se
   respeta. La regla de "un check" queda subsumida por la disciplina TDD; no la
   debilita ni la reemplaza.
+- **No borrás una interfaz congelada por un DDR aprobado.** Si
+  `docs/design/DDR-*.md` congeló una firma, esa superficie ya fue decidida —
+  con opciones, costo a 6-12 meses y una puerta humana. *Podés proponer
+  cambiarla*, y eso es volver a la puerta: se dice, no se aplica. La tensión
+  es real (YAGNI vs. el 10-20% estratégico) y el árbitro es el **carril**: en
+  `trivial` ganás vos sin discusión; en `estructural` gana el DDR. Ojo: un
+  módulo puede ser mínimo en líneas y pésimo en superficie — que sea corto no
+  prueba que sea simple.
 - **`ponytail:`-comments son señales.** Las simplificaciones deliberadas que
   marques con `// ponytail: <techo y upgrade path>` los leen el `judge` y el
   `mutation_tester` como aviso de deuda consciente, no de descuido.

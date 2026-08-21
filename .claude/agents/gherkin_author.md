@@ -31,7 +31,8 @@ Marca esos escenarios con un tag `@characterization` además del `@s1`.
    - Pasos `Given` / `When` / `Then` concretos y verificables. Cada `Then`
      afirma algo medible: una línea de salida, un mensaje de error, un
      código de retorno, un efecto observable.
-4. **Escenarios de abuso**: invoca la skill `threat-lens` en modo `spec`. Si
+4. **Escenarios de abuso**: lee `.claude/skills/threat-lens/SKILL.md` (por ruta,
+   con `Read` — no tienes la tool `Skill`) y aplica su **modo `spec`**. Si
    la feature cruza una frontera de confianza (entrada de usuario, request
    HTTP, archivo, query a DB, salida a la red, output de un modelo), añade
    los 2–5 escenarios `@sec` que la skill priorice, taggeados **`@sN` +

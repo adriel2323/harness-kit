@@ -19,12 +19,13 @@
    y resuelve el entorno antes de tocar código.
 3. Lee `progress/current.md` para entender en qué estado quedó la última sesión.
 4. Lee `feature_list.json`. Toda feature nueva (`"sdd": true`) recorre el
-   pipeline de cinco fases — ver `docs/workflow.md` y §4.
+   pipeline completo — ver `docs/workflow.md` y §4.
 5. Lee `docs/workflow.md` antes de coordinar nada.
 6. Lee `model-map.yaml` **una sola vez** y cachea la resolución `fase → modelo`
    antes de lanzar cualquier subagente. Según `active_profile`:
-   - `anthropic`: `spec`/`judge`=opus, `gherkin`/`tdd`=sonnet, resto=haiku
-   - `opencode_go`: `spec`/`judge`=Claude Opus (Agent); `gherkin`→GLM-5.2,
+   - `anthropic`: `spec`/`design`/`judge`=opus, `gherkin`/`tdd`=sonnet,
+     resto=haiku
+   - `opencode_go`: `spec`/`design`/`judge`=Claude Opus (Agent); `gherkin`→GLM-5.2,
      `tdd`→DeepSeek V4 Pro, `mutation`/`bootstrap`→DeepSeek V4 Flash (opencode).
 
 ## 2. Mapa del repositorio
@@ -42,6 +43,11 @@
 | `docs/gherkin.md`            | Cómo escribir `.feature`; de Gherkin a test                                 | Antes de redactar/leer escenarios |
 | `docs/mutation-testing.md`   | Por qué y cómo; umbral; tabla de herramientas por lenguaje                  | Antes de validar la suite |
 | `docs/refactoring.md`        | Cómo llevar un refactor/SOLID/desacople por el flujo (caracterización)      | Antes de tocar una feature `[REFACTOR]` |
+| `docs/complejidad.md`        | Auditoría de complejidad: qué refactorizar y en qué orden (churn × severidad), mapa de hotspots y puerta de priorización | Antes de arrancar un ciclo de refactor sobre código en producción |
+| `tools/complexity-scan.sh`   | Churn y co-cambio desde el historial de git; el insumo barato de la auditoría (sin LLM) | Paso 1 de la auditoría de complejidad |
+| `docs/design/`               | Decisiones de diseño: `INDEX.md` (módulo → DDR → estado) y los `DDR-<id>-<slug>.md` con la interfaz congelada | Antes de decidir dónde vive el código nuevo, y antes de implementar contra un módulo con DDR |
+| `docs/aposd-integracion.md`  | El razonamiento de por qué la fase de diseño existe y qué puede/no puede verificar el arnés. Histórico: la fuente de verdad del pipeline es `docs/workflow.md` y los prompts | Si vas a discutir el diseño de la fase de diseño |
+| `tools/mirror-check.sh`      | Drift entre `.claude/agents/` y su espejo `.opencode/agents/` (solo encabezados). Corre en `init.sh` como warning | Al tocar cualquier agente que tenga espejo opencode |
 | `docs/architecture.md`       | Qué significa "hacer un buen trabajo" en este proyecto                      | Antes de implementar |
 | `docs/conventions.md`        | Reglas de estilo, nombres, estructura                                       | Antes de escribir código |
 | `docs/verification.md`       | Cómo verificar que tu trabajo funciona + modelo de 2 gates (`--fast` vs suite completa) | Antes de declarar `done` |
@@ -51,8 +57,8 @@
 | `tools/test-affected.sh`     | Hook PostToolUse: corre solo el test del archivo editado (loop rápido)       | Automático tras Edit/Write |
 | `tools/run-mutation.sh`      | Wrapper: corre la mutación desde la raíz del proyecto, con el entorno cargado | Fase de mutación |
 | `.opencode/agents/`         | Subagentes opencode Go (`gherkin_author`, `tdd_craftsman`, `mutation_tester`, `harness_bootstrap`) — para el perfil híbrido | Si `active_profile` == `opencode_go` |
-| `.claude/agents/`            | `harness_bootstrap`, `craftsman_lead`, `spec_partner`, `gherkin_author`, `tdd_craftsman`, `judge`, `mutation_tester` | Si orquestas trabajo |
-| `.claude/skills/`            | `commit-hygiene` (commits limpios), `branch-pr` (rama y PR), `progress-log` (bitácoras y anti-teléfono), `ponytail` (escalera YAGNI/reuse-first, always-on), `ponytail-review` (caza over-engineering para el `judge`), `threat-lens` (seguridad: escenarios de abuso `@sec` en fase spec/gherkin + checks para el `judge`) | Al commitear, PR, registrar progreso, o escribir/revisar código |
+| `.claude/agents/`            | `harness_bootstrap`, `craftsman_lead`, `spec_partner`, `gherkin_author`, `design_partner`, `tdd_craftsman`, `judge`, `mutation_tester` | Si orquestas trabajo |
+| `.claude/skills/`            | `commit-hygiene` (commits limpios), `branch-pr` (rama y PR), `progress-log` (bitácoras y anti-teléfono), `ponytail` (escalera YAGNI/reuse-first, always-on), `ponytail-review` (caza over-engineering para el `judge`), `threat-lens` (seguridad: escenarios de abuso `@sec` en fase spec/gherkin + checks para el `judge`), `aposd-design` (diseño de módulos e interfaces según Ousterhout: diagnóstico de complejidad, DDR con interfaz congelada, catálogo de red flags) | Al commitear, PR, registrar progreso, o escribir/revisar código |
 | `model-map.yaml`             | Fuente de verdad `fase → tier → modelo` (perfiles anthropic y opencode_go); se lee 1× al arrancar | Antes de lanzar subagentes |
 
 > Las rutas del código y los tests no están hardcodeadas: las define
@@ -69,6 +75,8 @@
   `craftsman_lead` detiene el flujo en `spec_ready` y espera.
 - **TDD estricto: un test a la vez.** Nada de producción sin un test rojo
   que la pida (`docs/tdd.md`).
+- **No cambies una interfaz congelada por un DDR aprobado** (`docs/design/`).
+  Ni para simplificarla: eso es volver a la puerta humana.
 - **Documenta lo que haces** en `progress/current.md` mientras trabajas.
 - **Deja el repositorio limpio** antes de cerrar la sesión (ver §5).
 - **Si no sabes algo, busca en `docs/`** antes de inventarlo.
@@ -81,10 +89,11 @@
 pending
   → [spec_partner]   conversación → project-spec.md
   → [gherkin_author] project-spec.md → features/<name>.feature   (status: spec_ready)
-  → ⏸ HUMANO APRUEBA los escenarios
+  → [design_partner] → docs/design/DDR-<id>-<slug>.md   (si la fase está activa)
+  → ⏸ HUMANO APRUEBA los escenarios (+ elige diseño si el carril es estructural)
   → in_progress
   → [tdd_craftsman]  Rojo → Verde → Refactor (un test a la vez)
-  → [judge]          review (el juego entero)
+  → [judge]          review (el juego entero) + diff contra el DDR
   → [mutation_tester] mata mutantes; valida que los tests muerden
   → done
 ```
@@ -92,12 +101,19 @@ pending
 1. El `craftsman_lead` detecta la primera feature `pending` con `"sdd": true`.
 2. Lanza `spec_partner` (conversa y debate) → `project-spec.md`.
 3. Lanza `gherkin_author` → `features/<name>.feature`, status `spec_ready`.
-4. **Pausa.** El humano lee los escenarios y aprueba (o pide cambios).
-5. Aprobado → status `in_progress` y lanza `tdd_craftsman`.
-6. El `tdd_craftsman` recorre cada escenario `@s` con ciclos Rojo-Verde-Refactor.
-7. El `judge` revisa cobertura, disciplina TDD y calidad; aprueba o rechaza.
-8. El `mutation_tester` corre la mutación; exige el umbral.
-9. Si todo pasa, el **`craftsman_lead`** verifica de disco `judge=done` y
+4. Si la fase de diseño está activa (`feature.design` > `rules.design_default` >
+   `true`), lanza `design_partner` → `docs/design/DDR-<id>-<slug>.md`. **No hay
+   estado `design_ready`**: la fase se verifica por existencia del archivo.
+5. **Pausa.** El humano lee los escenarios y aprueba (o pide cambios). Si el
+   carril del DDR es `estructural`, en el **mismo mensaje** elige la opción de
+   diseño («aprobado + A»). Es **una sola** parada, no dos.
+6. Aprobado → status `in_progress` y lanza `tdd_craftsman`, con la **interfaz
+   congelada** del DDR como contrato cerrado.
+7. El `tdd_craftsman` recorre cada escenario `@s` con ciclos Rojo-Verde-Refactor.
+8. El `judge` revisa cobertura, disciplina TDD, calidad, seguridad, red flags de
+   diseño y —si hay DDR— el diff contra la interfaz congelada; aprueba o rechaza.
+9. El `mutation_tester` corre la mutación; exige el umbral.
+10. Si todo pasa, el **`craftsman_lead`** verifica de disco `judge=done` y
    `mutation_tester=done`, hace el flip a `status: done` en `feature_list.json`
    y mueve el resumen a `progress/history.md` (R1 — el cierre es suyo, no del
    `tdd_craftsman`).

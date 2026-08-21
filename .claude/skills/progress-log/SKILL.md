@@ -10,7 +10,7 @@ description: >
 
 # Progress Log
 
-> Transversal al flujo de 5 fases. Gobierna **qué se escribe, cuándo y en qué
+> Transversal a todo el pipeline. Gobierna **qué se escribe, cuándo y en qué
 > archivo** para que el estado viva en disco, no en el contexto. La evidencia
 > en `progress/` es lo que hace funcionar la regla anti-teléfono. Rutas
 > relativas a la raíz del proyecto (layout consolidado: `harness-kit/progress/`).
@@ -39,6 +39,14 @@ en lo narrado; confía en el archivo.
 | `tdd_<name>.md`       | tdd_craftsman     | Al completar cada ciclo R→V→R         |
 | `judge_<name>.md`     | judge             | Al emitir el veredicto                |
 | `mutation_<name>.md`  | mutation_tester   | Al completar la corrida de mutación   |
+
+**El DDR no vive en `progress/`.** El `design_partner` escribe en
+`docs/design/DDR-<id>-<slug>.md` y su fila en `docs/design/INDEX.md`. La
+distinción es deliberada y no es de gusto: `progress/` es **efímero** (se vacía
+al cerrar la sesión, el resumen se archiva en `history.md`), y un DDR es
+**durable** — lo consultan las features siguientes durante años, y es lo que
+evita abrir puerta dos veces por la misma decisión. Un DDR en `progress/`
+desaparecería justo cuando empieza a servir.
 
 ## Campos mínimos de cada artefacto
 

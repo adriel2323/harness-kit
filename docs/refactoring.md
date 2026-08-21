@@ -29,12 +29,54 @@
    que capturen su comportamiento actual. Solo entonces puedes reestructurar
    con seguridad.
 
+## Antes de todo: ¿qué refactorizar, y en qué orden?
+
+> Si ya sabes exactamente qué módulo vas a tocar y por qué, salta a la fase 0.
+> Esta sección es para cuando el proyecto es grande, viejo, o no lo escribiste tú.
+
+Elegir mal el objetivo es más caro que refactorizar mal: un refactor impecable
+sobre el módulo equivocado no abarata ningún cambio futuro. La regla es
+**priorizar por cuánto cuesta el próximo cambio**, no por lo feo que está el
+código:
+
+```
+prioridad ≈ churn × severidad del red flag
+```
+
+Dos insumos, en este orden:
+
+1. **`bash tools/complexity-scan.sh`** — churn (cuánto se toca cada archivo) y
+   **co-cambio** (qué archivos cambian juntos). Un par que cambia junto una y
+   otra vez **sin importarse entre sí** es amplificación de cambios medida, no
+   opinada: hay una decisión de diseño viviendo en dos lugares. Sale de git,
+   cuesta segundos y no usa LLM.
+2. **Barrido de lectura sobre los archivos que quedaron arriba** —no sobre el
+   repo entero— con el catálogo
+   `.claude/skills/aposd-design/references/red-flags.md`.
+
+El resultado se escribe en **`docs/complejidad.md`**, que trae el procedimiento
+completo, la tabla a llenar y la puerta humana de priorización (se eligen **3**
+hotspots, no más). De cada hotspot elegido sale un **DDR** con la interfaz
+objetivo congelada, y de cada DDR salen las entradas `[REFACTOR]`.
+
+**El orden completo, y el DDR va antes de la caracterización:**
+
+```
+auditoría → DDR (interfaz objetivo) → caracterización ACOTADA AL SEAM
+          → mover en verde → judge → mutación
+```
+
+Es el DDR el que te dice **qué** comportamiento hay que pintar. Caracterizar
+antes de saber dónde cae el seam produce tests sobre código que va a
+desaparecer.
+
 ## Cómo arrancar, fase por fase
 
 ### 0. Divide por seam (costura)
 No metas "aplicar SOLID a todo el módulo" en una sola feature. Pártelo en
 movimientos arquitectónicos pequeños, **uno por entrada** en
-`feature_list.json`:
+`feature_list.json`. Si vienes de una auditoría, los seams ya están escritos en
+el DDR del hotspot; si no, sálenlos acá:
 - "extraer la persistencia detrás de una interfaz (DIP)"
 - "separar validación de notificación (SRP)"
 - "introducir un puerto para el reloj/IO (testabilidad)"
@@ -52,6 +94,11 @@ Queda en `project-spec.md` como un registro de decisión (dolor → objetivo →
 decisiones).
 
 ### 2. Gherkin (`gherkin_author`) — caracterización
+> **Acótala al seam.** Si hay un DDR, su interfaz objetivo define exactamente qué
+> comportamiento cruza la costura y por lo tanto qué hay que pintar. Sin esa
+> acotación se caracteriza de más: tests sobre código que el refactor va a
+> borrar.
+
 El `.feature` pinta el **comportamiento ACTUAL** del código que vas a mover:
 entradas, salidas, errores, efectos. No describe uno nuevo. Si el legacy no
 tiene tests, esto es lo más importante del refactor. La puerta humana es:
@@ -122,6 +169,10 @@ la puerta humana **antes** de que se mueva una sola clase.
 ## Anti-patrones
 
 - ❌ Refactor sin caracterización previa ("lo arreglo y luego veo si rompí algo").
+- ❌ Elegir el objetivo a ojo en un proyecto grande. Un refactor impecable sobre
+  el módulo equivocado no abarata ningún cambio futuro (ver `docs/complejidad.md`).
+- ❌ Caracterizar antes de saber dónde cae el seam: son tests sobre código que
+  va a desaparecer.
 - ❌ Meter una mejora de comportamiento "ya que estoy" dentro del refactor.
 - ❌ "Big bang": reescribir el módulo entero en una feature. Divide por seam.
 - ❌ Declarar el refactor hecho con mutantes vivos sobre las líneas movidas.

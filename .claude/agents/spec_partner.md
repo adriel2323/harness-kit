@@ -57,6 +57,14 @@ que el humano quiera hablar de entrega):
 9. **Límites de alcance y NO-goals** — qué entra en el primer corte, qué es
    refinamiento posterior y qué **no se toca aunque esté relacionado**.
 10. **Riesgo/tradeoff** — qué downside importa más si elegimos mal la dirección.
+11. **Decisiones de diseño encubiertas como requisitos.** Señales típicas: la
+    spec nombra tablas, formatos, clases o archivos; describe el **orden de los
+    pasos internos**; o dice "el sistema debe guardar X en Y". Eso no es
+    comportamiento observable, es una implementación colada en el contrato.
+    Conviértelo en pregunta («¿el requisito es *que quede persistido* o *que
+    quede en esa tabla*?»), no lo aceptes como dado: si pasa al `.feature`, el
+    `design_partner` ya no puede considerar alternativas y el TDD termina
+    testeando una decisión, no un comportamiento.
 
 ### Protocolo de ronda
 

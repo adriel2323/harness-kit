@@ -41,6 +41,7 @@ IDs y precios verificados (skill `claude-api`, junio 2026), $/MTok in·out:
 | `harness_bootstrap` | Detección de stack, mecánico | cheap | Haiku 4.5 | Qwen3 / DeepSeek | Casi un script. No invertir aquí. |
 | `spec_partner` | Debate de producto, pushback, elicitación | **deep** | **Opus 4.8** | GLM/Qwen flojos en debate adversarial | **Claude deep. No abaratar.** Aquí la calidad compone. |
 | `gherkin_author` | Destilación estructurada spec→Gherkin | standard | Sonnet 4.6 | **Qwen3-Coder / GLM-5.2 buenos** | Sonnet base; viable externo si el coste manda. |
+| `design_partner` | Diseñarlo dos veces, cotizar contra el roadmap, congelar interfaz | **deep** | **Opus 4.8** | No probado | **Claude deep.** Mismo argumento que `spec_partner`/`judge`: composición de juicio. Un límite de módulo mal puesto lo pagan las N features siguientes, y ningún gate posterior lo detecta (un refactor preserva comportamiento → la mutación no lo ve). |
 | `tdd_craftsman` | TDD estricto, code+tests, loop largo | standard | Sonnet 4.6 (Opus si difícil) | Codex GPT-5.x (agentic largo) | Sonnet base; piloto Codex. Externos "seguros" por los gates. |
 | `judge` | Review adversarial — "el review es el juego entero" | **deep** | **Opus 4.8** | **No confiable** como gate final | **Claude deep. Nunca abaratar.** |
 | `mutation_tester` | Corre `tools/mutate.py` y reporta vs umbral | cheap | Haiku 4.5 | Cualquiera | Apenas necesita LLM. |
@@ -53,8 +54,12 @@ IDs y precios verificados (skill `claude-api`, junio 2026), $/MTok in·out:
    baratos/externos en `gherkin` y `tdd`: si el barato se equivoca, el `judge`
    lo rechaza y la mutación lo detecta. El riesgo de abaratar esas dos fases es
    **bajo**, no alto.
-2. **`spec_partner` y `judge` son donde la calidad compone** → Claude deep
-   (Opus 4.8). Abaratarlos contamina todo lo aguas abajo; es el peor ahorro.
+2. **`spec_partner`, `design_partner` y `judge` son donde la calidad compone** →
+   Claude deep (Opus 4.8). Abaratarlos contamina todo lo aguas abajo; es el peor
+   ahorro. Los tres comparten la misma propiedad: **ningún gate posterior
+   detecta su error**. Un mal escenario pasa la mutación, un mal límite de
+   módulo también (un refactor preserva comportamiento por definición), y un
+   `judge` flojo aprueba lo que no debía.
 3. **Codex tiene UNA ventaja diferenciada y solo una**: el loop de
    implementación agentic largo. **Riesgo real**: su autonomía choca con "un
    test a la vez / Tres Leyes del TDD". Hay que **medir adherencia**, no
@@ -86,6 +91,27 @@ escenarios): **~275k tokens / ~15 min** de subagentes. Tres costes a batir:
    | Modelo resuelto | id | log del `craftsman_lead` (fase→modelo) |
 
 4. Registrar la corrida como una fila nueva en la tabla de la §7.
+
+### Métrica extra con la fase de diseño encendida
+
+La fase `design_partner` no se justifica por coste: **sube** el coste (+1
+corrida Opus por feature). Su contra-síntoma de éxito es uno solo y es medible:
+
+> **La feature N+1 sobre un módulo con DDR toca menos archivos que las que se
+> hicieron sin él.**
+
+Con el mapa `covers:` de los tests y `tools/test-map.sh` eso se cuenta, no se
+opina. Dos columnas más por corrida, mientras la fase esté en evaluación:
+
+| Métrica | Unidad | Fuente |
+|---------|--------|--------|
+| Módulos tocados | n | `covers:` de los tests de la feature |
+| Módulos predichos por el DDR | n | fila «Módulos afectados» del DDR |
+
+Registrar las **primeras diez features** con la fase encendida. Si no se
+registra, en tres meses la discusión sobre si sirvió va a ser de opiniones.
+Si el `judge` **nunca** encuentra drift contra el DDR, la lectura no es «el
+diseño es perfecto»: es que nadie está mirando.
 
 ### Qué esperar
 
