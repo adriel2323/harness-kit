@@ -166,6 +166,28 @@ de **configuración**: `stryker run src/foo.js` lo hace buscar un config llamado
 el binario local (`node_modules/.bin/stryker`, sin atarse a npm/pnpm/yarn) y
 envuelve todo en `guard-mem.sh`.
 
+### Varios configs: `--config`
+
+Un proyecto puede tener un config de Stryker por módulo, cada uno con su umbral,
+su `testFilter` y hasta su runner. `ia_muni_frontend` tiene ocho:
+`stryker.gateway.json` al 100%, `stryker.conf.json` al 85%, y configs de vitest
+distintas para `web/` y `backend/`.
+
+`--config` es un flag **del wrapper**, no de Stryker: en su CLI el archivo de
+configuración es el único posicional (`stryker run [configFile]`), y ese lugar
+lo usa el arnés para los archivos a mutar.
+
+```bash
+bash tools/run-mutation.sh --config stryker.gateway.json backend/src/gateway/parser.ts
+```
+
+El config aporta runner, umbral y `testFilter`; el `git diff` aporta el scope.
+El `--mutate` de la línea de comandos pisa el `mutate` del config, que es lo que
+querés: el config dice *cómo* se corre, el diff dice *qué* se muta.
+
+Si el umbral del config y `HARNESS_MUTATION_THRESHOLD` no coinciden, el wrapper
+avisa. Manda el del config: el exit code sale de ahí.
+
 ### Tres cosas que muerden al configurarlo
 
 **1. Resolución de plugins con pnpm.** El default de Stryker es el glob

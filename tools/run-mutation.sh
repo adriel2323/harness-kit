@@ -68,7 +68,18 @@ DIFF_BASE="${HARNESS_MUTATION_DIFF_BASE:-HEAD}"
 
 if [ -n "$RANGE_FMT" ] && [ "$#" -gt 0 ] && git rev-parse --git-dir >/dev/null 2>&1; then
   SCOPED=()
+  _prev_was_flag=0
   for _f in "$@"; do
+    # Valor de un flag (p.ej. `--config stryker.gateway.json`): pasa tal cual.
+    # Sin esto intentariamos sacarle un rango de git al archivo de config, que
+    # no es un objetivo de mutacion. Contracara: un flag booleano seguido de un
+    # archivo (`--inPlace src/a.js`) deja a ese archivo sin rango — se muta
+    # entero, que falla hacia el rojo. Si te pasa, pone los flags DESPUES de los
+    # archivos o dale el rango explicito.
+    if [ "$_prev_was_flag" = 1 ]; then
+      SCOPED+=("$_f"); _prev_was_flag=0; continue
+    fi
+    case "$_f" in -*) SCOPED+=("$_f"); _prev_was_flag=1; continue ;; esac
     # Rango explicito del que llama: respetarlo, no pisarlo.
     case "$_f" in *:*) SCOPED+=("$_f"); continue ;; esac
     if [ ! -f "$_f" ]; then SCOPED+=("$_f"); continue; fi
